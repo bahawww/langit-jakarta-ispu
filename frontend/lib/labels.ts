@@ -19,11 +19,6 @@ export const MODEL_LABEL: Record<string, string> = {
   decision_tree: "Decision Tree",
   random_forest: "Random Forest",
   knn: "kNN",
-  lightgbm: "LightGBM",
-  lightgbm_direct: "LightGBM",
-  rule_baseline: "Aturan ambang ISPU",
-  persistence: "Persistence (nilai kemarin)",
-  seasonal_naive: "Seasonal naive (7 hari lalu)",
 };
 
 export const modelLabel = (k: string) => MODEL_LABEL[k] ?? k;

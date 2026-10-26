@@ -1,6 +1,6 @@
-# Platform Monitoring & Prediksi Kualitas Udara ISPU DKI Jakarta
+# Platform Monitoring & Hasil Pelatihan Model Kualitas Udara ISPU DKI Jakarta
 
-Aplikasi web untuk memantau dan memprediksi kualitas udara harian (Indeks Standar Pencemar Udara)
+Aplikasi web untuk memantau kualitas udara harian (Indeks Standar Pencemar Udara) dan menampilkan hasil pelatihan tiga model dasar
 dari 5 stasiun SPKU DKI Jakarta, Januari 2024 – November 2025. Sumber data: DLH Provinsi DKI
 Jakarta via [Satu Data Jakarta](https://satudata.jakarta.go.id/open-data/detail?kategori=dataset&page_url=data-indeks-standar-pencemar-udara-ispu-di-provinsi-dki-jakarta).
 Dibangun dari tugas kuliah "Dari Data Menjadi Solusi AI" (model awal di Orange Data Mining).
@@ -35,7 +35,7 @@ flowchart LR
 | Folder | Isi |
 |---|---|
 | `backend/` | FastAPI + Pydantic v2, SQLAlchemy 2, Alembic, ingest, auth, Celery, tes pytest |
-| `ml/` | Paket `ispu_ml`: klasifikasi, forecasting, metrik, snapshot data |
+| `ml/` | Paket `ispu_ml`: klasifikasi (DT, RF, kNN), metrik, snapshot data |
 | `frontend/` | Next.js 16 (App Router) + TS, Tailwind 4, design system Udara Jakarta (`ua-*`), TanStack Query, ECharts 6, tes Playwright |
 | `deploy/` | `compose.yaml`, `Caddyfile`, `build.sh`, `backup.sh`, `restore.sh`, `cloudflare-publish.sh` |
 | root | Data asli (CSV/XLSX, tidak pernah diubah; checksum di `docs/original-files.sha256`) dan dokumen tugas |
@@ -124,39 +124,19 @@ jadi menyalakannya akan menambah 1 baris SANGAT TIDAK SEHAT (2024-02-14 DKI3) ya
   `docker compose -f deploy/compose.yaml exec worker python -m app.cli train`.
 - **Champion/challenger:** tiap versi menyimpan artifact `eval` (dilatih sampai batas holdout) dan
   `serve` (dilatih ulang pada semua data). Champion diskor ulang dengan artifact `eval`-nya pada holdout
-  yang sama dengan challenger; challenger hanya dipromosikan bila macro F1 (klasifikasi) ≥ champion
-  atau MAE PM2.5 rata-rata (forecast) ≤ champion. Keputusan + alasan tersimpan di `training_runs`.
+  yang sama dengan challenger; challenger hanya dipromosikan bila macro F1 ≥ champion.
+  Keputusan + alasan tersimpan di `training_runs`.
 - **Rollback:** tombol **Rollback** di tabel registry (konfirmasi dua langkah), atau
-  `app.cli rollback <model_version_id>`. Forecast dibuat ulang dari versi tersebut.
+  `app.cli rollback <model_version_id>`.
 - **Reproducible:** seed 42 di semua model, snapshot data `artifacts/snapshots/<sha256>.csv.gz` per run.
 
 ## Penjelasan model
 
-**Klasifikasi** (melanjutkan tugas kuliah): kategori dari 6 polutan di hari yang sama. Kandidat:
-Decision Tree, Random Forest, kNN (k=5, distandarkan), semuanya model dasar scikit-learn tanpa tuning; pembanding: **aturan ambang ISPU**.
-Evaluasi pada holdout waktu (20% tanggal terakhir) dan split 80:20 stratified (paritas Orange).
-Karena kategori ditentukan langsung dari `max`, aturan ambang hampir selalu benar dan **tidak ada model ML
-yang mengalahkannya**. Ini temuan, bukan kegagalan: nilai ML sebenarnya ada di forecasting.
-
-**Forecasting** H+1..H+7 per stasiun: satu LightGBM per (polutan, horizon), pooled lintas stasiun.
-Fitur: lag 0/1/2/6/13 hari, rolling mean 3/7/14, hari dalam minggu & bulan tanggal target, stasiun.
-Celah data tetap NaN (tidak diisi). Kategori turunan = ambang ISPU dari max 6 prediksi. Interval
-10–90% = kuantil residual holdout. Validasi: holdout waktu + rolling-origin backtest 5 fold (bukan split acak).
-Baseline: persistence (nilai kemarin) dan seasonal naive (7 hari lalu).
-
-Hasil champion forecast v2 (150 pohon; holdout 14 Jul – 30 Nov 2025):
-
-| Metode | MAE PM2.5 rata-rata (holdout) | MAE backtest | Akurasi kategori rata-rata |
-|---|---|---|---|
-| LightGBM v2 (150 pohon) | 13,38 | 12,90 | 82,4% |
-| LightGBM v1 (300 pohon) | 13,74 | 13,25 | 82,5% |
-| Persistence | 13,93 | 13,93 | 77,2% |
-| Seasonal naive | 15,29 | 15,29 | 74,7% |
-
-v2 dipromosikan otomatis oleh champion/challenger dan mengalahkan kedua baseline di setiap horizon
-H+1..H+7 (v1 masih kalah tipis di H+5–H+7). Catatan: 150 pohon dipilih dari holdout yang sama, jadi
-angka holdout v2 sedikit optimistis; backtest 5 fold memberi gambaran yang lebih jujur. Forecast dihitung dari **tanggal data terakhir**
-(saat ini 30 Nov 2025), bukan dari hari ini, sampai ada data baru.
+**Klasifikasi** (melanjutkan tugas kuliah): kategori dari 6 polutan di hari yang sama. Hanya tiga
+model dasar scikit-learn tanpa tuning: Decision Tree, Random Forest (parameter bawaan), dan kNN
+(k=5, distandarkan). Evaluasi pada holdout waktu (20% tanggal terakhir) dan split 80:20 stratified
+(paritas Orange). Tidak ada forecasting, LightGBM, maupun aturan ambang sebagai model: semuanya
+dihapus (ada di riwayat git sebelum commit penghapusan dan di dump `backups/ispu-pre-hapus-forecast.dump`).
 
 **Baseline Orange** (626 data uji, dihitung ulang dari database): RF 97,60% (611), DT 98,24% (615),
 kNN 91,85% (575); weighted F1 0,9761 / 0,9825 / 0,9155. 21 baris DKI1 Desember 2024 berlabel tidak

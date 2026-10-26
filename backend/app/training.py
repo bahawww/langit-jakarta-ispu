@@ -1,10 +1,10 @@
-"""Orkestrasi training: snapshot data -> latih -> champion/challenger -> registry -> forecast."""
+"""Orkestrasi training: snapshot data -> latih -> champion/challenger -> registry."""
 
 import gzip
 import json
 import logging
 import math
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -15,29 +15,23 @@ from ispu_ml.classification import PRIMARY_METRIC as CLS_METRIC
 from ispu_ml.classification import score as cls_score
 from ispu_ml.classification import train_classification
 from ispu_ml.data import holdout_cutoff, normalize_frame, snapshot_bytes, snapshot_hash
-from ispu_ml.forecasting import PRIMARY_METRIC as FC_METRIC
-from ispu_ml.forecasting import ForecastConfig, train_forecaster
-from ispu_ml.forecasting import forecast as make_forecast
-from ispu_ml.forecasting import score as fc_score
-from sqlalchemy import delete, func, select, text
-from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import get_settings
 from app.ispu import POLLUTANTS
-from app.models import Forecast, Measurement, ModelVersion, Station, TrainingRun
+from app.models import Measurement, ModelVersion, Station, TrainingRun
 
 log = logging.getLogger(__name__)
 
 _LOCK_KEY = 4_204_001  # pg advisory lock: cegah dua training berjalan bersamaan
 MIN_DAYS = 60
-TASKS = ("classification", "forecast")
+TASKS = ("classification",)
 
 
 @dataclass
 class TrainConfig:
     seed: int = 42
-    forecast: ForecastConfig = field(default_factory=ForecastConfig)
 
     def as_dict(self) -> dict:
         return asdict(self)
@@ -76,13 +70,12 @@ def _jsonable(obj):
     )
 
 
-def _better_or_equal(task: str, challenger: float, champion: float) -> bool:
+def _better_or_equal(challenger: float, champion: float) -> bool:
     if math.isnan(challenger):
         return False
     if math.isnan(champion):
         return True
-    # klasifikasi: macro F1 (besar lebih baik); forecast: MAE (kecil lebih baik)
-    return challenger >= champion if task == "classification" else challenger <= champion
+    return challenger >= champion  # macro F1: besar lebih baik
 
 
 def champion(session: Session, task: str) -> ModelVersion | None:
@@ -117,27 +110,18 @@ def _train_task(
         return {"decision": "skipped", "reason": "data dan konfigurasi sama dengan champion"}
 
     holdout = df[df["tanggal"] > cutoff]
-    if task == "classification":
-        result = train_classification(df, cutoff, seed=cfg.seed)
-        algorithm, metric_name = result.algorithm, CLS_METRIC
-        challenger_value = result.primary
-        params["model"] = result.params
-        eval_obj, serve_obj = result.eval_model, result.serve_model
-    else:
-        result = train_forecaster(df, cutoff, cfg.forecast)
-        algorithm, metric_name = "lightgbm_direct", FC_METRIC
-        challenger_value = result.primary
-        eval_obj, serve_obj = result.eval_bundle, result.serve_bundle
+    result = train_classification(df, cutoff, seed=cfg.seed)
+    algorithm, metric_name = result.algorithm, CLS_METRIC
+    challenger_value = result.primary
+    params["model"] = result.params
+    eval_obj, serve_obj = result.eval_model, result.serve_model
     metrics = result.metrics
 
     champion_value = float("nan")
     if current:
         champ_eval = joblib.load(Path(current.artifact_dir) / "eval.joblib")
-        if task == "classification":
-            champion_value = cls_score(champ_eval, holdout)[CLS_METRIC]
-        else:
-            champion_value = fc_score(champ_eval, df, cutoff)["summary"]["lightgbm"][FC_METRIC]
-    promote = current is None or _better_or_equal(task, challenger_value, champion_value)
+        champion_value = cls_score(champ_eval, holdout)[CLS_METRIC]
+    promote = current is None or _better_or_equal(challenger_value, champion_value)
 
     version = (
         session.scalar(select(func.max(ModelVersion.version)).where(ModelVersion.task == task)) or 0
@@ -181,9 +165,8 @@ def _train_task(
     if current is None:
         reason = "belum ada champion"
     elif promote:
-        op = ">=" if task == "classification" else "<="
         reason = (
-            f"challenger {challenger_value:.4f} {op} champion {champion_value:.4f} ({metric_name})"
+            f"challenger {challenger_value:.4f} >= champion {champion_value:.4f} ({metric_name})"
         )
     else:
         reason = (
@@ -199,36 +182,6 @@ def _train_task(
             **comparison,
         }
     )
-
-
-def regenerate_forecasts(session: Session) -> int:
-    """Ganti tabel forecasts dengan prediksi champion forecast dari data terbaru."""
-    mv = champion(session, "forecast")
-    session.execute(delete(Forecast))
-    if mv is None:
-        return 0
-    df = load_frame(session)
-    bundle = joblib.load(Path(mv.artifact_dir) / "serve.joblib")
-    items = make_forecast(bundle, df)
-    station_ids = dict(session.execute(select(Station.code, Station.id)).all())
-    rows = [
-        {
-            "model_version_id": mv.id,
-            "station_id": station_ids[i["station"]],
-            "origin_date": i["origin_date"],
-            "target_date": i["target_date"],
-            "horizon": i["horizon"],
-            "values": i["values"],
-            "max_yhat": i["max_yhat"],
-            "critical": i["critical"],
-            "kategori": i["kategori"],
-            "kategori_upper": i["kategori_upper"],
-        }
-        for i in items
-    ]
-    if rows:
-        session.execute(insert(Forecast).values(rows))
-    return len(rows)
 
 
 def run_training(
@@ -272,7 +225,6 @@ def _run_locked(
         for task in TASKS:
             details[task] = _train_task(session, run, task, df, cutoff, digest, cfg)
             log.info("training task", extra={"run_id": run.id, "task": task, **details[task]})
-        details["forecasts"] = regenerate_forecasts(session)
         run.details = details
         decisions = {details[t]["decision"] for t in TASKS}
         run.status = "skipped" if decisions == {"skipped"} else "success"
@@ -307,8 +259,6 @@ def rollback(factory: sessionmaker[Session], version_id: int) -> TrainingRun:
                 "to_version": target.version,
             }
         }
-        if target.task == "forecast":
-            details["forecasts"] = regenerate_forecasts(session)
         run = TrainingRun(
             trigger="rollback",
             status="success",

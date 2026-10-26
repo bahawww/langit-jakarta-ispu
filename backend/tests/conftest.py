@@ -27,9 +27,7 @@ from app.config import get_settings  # noqa: E402
 from app.db import get_engine  # noqa: E402
 from app.main import app  # noqa: E402
 
-_TABLES = (
-    "forecasts, model_versions, training_runs, measurements, orange_baseline, uploads, stations"
-)
+_TABLES = "model_versions, training_runs, measurements, orange_baseline, uploads, stations"
 
 
 @pytest.fixture(scope="session", autouse=True)

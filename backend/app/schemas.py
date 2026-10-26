@@ -131,35 +131,6 @@ class TrainingRunOut(BaseModel):
     details: dict[str, Any]
 
 
-class PollutantForecast(BaseModel):
-    yhat: float
-    lo: float
-    hi: float
-
-
-class ForecastDay(BaseModel):
-    station_code: str
-    station_name: str
-    origin_date: date
-    target_date: date
-    horizon: int
-    kategori: str
-    kategori_upper: str
-    critical: str
-    max_yhat: float
-    alert: bool
-    alert_possible: bool
-    values: dict[str, PollutantForecast]
-
-
-class ForecastOut(BaseModel):
-    model_version_id: int | None
-    model_version: int | None
-    generated_at: datetime | None
-    interval: list[float] | None
-    items: list[ForecastDay]
-
-
 class DailyPoint(BaseModel):
     tanggal: date
     avg: float

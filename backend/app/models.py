@@ -112,7 +112,7 @@ class ModelVersion(Base):
     __table_args__ = (UniqueConstraint("task", "version"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    task: Mapped[str] = mapped_column(String(16))  # classification | forecast
+    task: Mapped[str] = mapped_column(String(16))  # classification
     version: Mapped[int] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     promoted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -130,25 +130,3 @@ class ModelVersion(Base):
     artifact_dir: Mapped[str] = mapped_column(String(500))
     snapshot_hash: Mapped[str] = mapped_column(String(64))
     training_run_id: Mapped[int | None] = mapped_column(ForeignKey("training_runs.id"))
-
-
-class Forecast(Base):
-    """Forecast terbaru dari champion; diganti seluruhnya setiap kali dibuat ulang."""
-
-    __tablename__ = "forecasts"
-    __table_args__ = (UniqueConstraint("station_id", "target_date"),)
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    model_version_id: Mapped[int] = mapped_column(ForeignKey("model_versions.id"))
-    station_id: Mapped[int] = mapped_column(ForeignKey("stations.id"))
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    origin_date: Mapped[date] = mapped_column(Date)
-    target_date: Mapped[date] = mapped_column(Date)
-    horizon: Mapped[int] = mapped_column(SmallInteger)
-    values: Mapped[dict[str, Any]] = mapped_column(JSONB)
-    max_yhat: Mapped[float]
-    critical: Mapped[str] = mapped_column(String(32))
-    kategori: Mapped[str] = mapped_column(String(32))
-    kategori_upper: Mapped[str] = mapped_column(String(32))
-
-    station: Mapped[Station] = relationship(lazy="joined")

@@ -28,14 +28,7 @@ import { fmt } from "@/lib/format";
 import { modelLabel } from "@/lib/labels";
 
 const MAX_BYTES = 5 * 1024 * 1024;
-const REFRESH_KEYS = [
-  "/models",
-  "/models/champions",
-  "/forecast",
-  "/training-runs",
-  "/admin/uploads",
-  "/meta",
-];
+const REFRESH_KEYS = ["/models", "/models/champions", "/training-runs", "/admin/uploads", "/meta"];
 
 function useRefreshAll() {
   const qc = useQueryClient();
@@ -351,7 +344,7 @@ function RegistryCard() {
       <CardHeader
         id="h-registry"
         title="Model registry"
-        description="Rollback menjadikan versi lama champion lagi dan membuat ulang forecast."
+        description="Rollback menjadikan versi lama champion lagi."
       />
       <CardBody>
         {rb.error ? (
@@ -395,9 +388,7 @@ function RegistryCard() {
                 <tbody>
                   {d.map((v) => (
                     <tr key={v.id}>
-                      <th scope="row">
-                        {v.task === "forecast" ? "Forecast" : "Klasifikasi"} v{v.version}
-                      </th>
+                      <th scope="row">Klasifikasi v{v.version}</th>
                       <td className="ua-left">{modelLabel(v.algorithm)}</td>
                       <td className="ua-left">
                         <span

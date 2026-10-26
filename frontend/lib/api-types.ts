@@ -194,23 +194,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  "/api/forecast": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get Forecast */
-    get: operations["get_forecast_api_forecast_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   "/api/stats/daily": {
     parameters: {
       query?: never;
@@ -442,54 +425,6 @@ export interface components {
       /** Kategori Terburuk */
       kategori_terburuk: string;
     };
-    /** ForecastDay */
-    ForecastDay: {
-      /** Station Code */
-      station_code: string;
-      /** Station Name */
-      station_name: string;
-      /**
-       * Origin Date
-       * Format: date
-       */
-      origin_date: string;
-      /**
-       * Target Date
-       * Format: date
-       */
-      target_date: string;
-      /** Horizon */
-      horizon: number;
-      /** Kategori */
-      kategori: string;
-      /** Kategori Upper */
-      kategori_upper: string;
-      /** Critical */
-      critical: string;
-      /** Max Yhat */
-      max_yhat: number;
-      /** Alert */
-      alert: boolean;
-      /** Alert Possible */
-      alert_possible: boolean;
-      /** Values */
-      values: {
-        [key: string]: components["schemas"]["PollutantForecast"];
-      };
-    };
-    /** ForecastOut */
-    ForecastOut: {
-      /** Model Version Id */
-      model_version_id: number | null;
-      /** Model Version */
-      model_version: number | null;
-      /** Generated At */
-      generated_at: string | null;
-      /** Interval */
-      interval: number[] | null;
-      /** Items */
-      items: components["schemas"]["ForecastDay"][];
-    };
     /** HTTPValidationError */
     HTTPValidationError: {
       /** Detail */
@@ -688,15 +623,6 @@ export interface components {
       pred_decision_tree: string;
       /** Pred Knn */
       pred_knn: string;
-    };
-    /** PollutantForecast */
-    PollutantForecast: {
-      /** Yhat */
-      yhat: number;
-      /** Lo */
-      lo: number;
-      /** Hi */
-      hi: number;
     };
     /** PollutantOut */
     PollutantOut: {
@@ -1128,7 +1054,7 @@ export interface operations {
   list_models_api_models_get: {
     parameters: {
       query?: {
-        task?: ("classification" | "forecast") | null;
+        task?: "classification" | null;
       };
       header?: never;
       path?: never;
@@ -1227,38 +1153,6 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["TrainingRunOut"][];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  get_forecast_api_forecast_get: {
-    parameters: {
-      query?: {
-        /** @description Kode stasiun */
-        station?: string[] | null;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ForecastOut"];
         };
       };
       /** @description Validation Error */

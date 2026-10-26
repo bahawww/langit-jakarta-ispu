@@ -1,4 +1,4 @@
-"""Endpoint baca untuk registry model, riwayat training, dan forecast."""
+"""Endpoint baca untuk registry model dan riwayat training."""
 
 from typing import Annotated, Literal
 
@@ -6,13 +6,11 @@ from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import select
 
 from app.api.deps import SessionDep
-from app.ispu import severity
-from app.models import Forecast, ModelVersion, Station, TrainingRun
-from app.schemas import ForecastDay, ForecastOut, ModelVersionOut, TrainingRunOut
+from app.models import ModelVersion, TrainingRun
+from app.schemas import ModelVersionOut, TrainingRunOut
 
 router = APIRouter(prefix="/api")
-Task = Literal["classification", "forecast"]
-_UNHEALTHY = severity("TIDAK SEHAT")
+Task = Literal["classification"]
 
 
 def _mv(m: ModelVersion, with_metrics: bool) -> ModelVersionOut:
@@ -36,7 +34,7 @@ def champions(session: SessionDep) -> dict[str, ModelVersionOut | None]:
         m.task: m
         for m in session.scalars(select(ModelVersion).where(ModelVersion.status == "champion"))
     }
-    return {t: (_mv(rows[t], True) if t in rows else None) for t in ("classification", "forecast")}
+    return {t: (_mv(rows[t], True) if t in rows else None) for t in ("classification",)}
 
 
 @router.get("/models/{model_id}", response_model=ModelVersionOut)
@@ -53,38 +51,3 @@ def training_runs(
 ) -> list[TrainingRunOut]:
     stmt = select(TrainingRun).order_by(TrainingRun.id.desc()).limit(limit)
     return [TrainingRunOut.model_validate(r, from_attributes=True) for r in session.scalars(stmt)]
-
-
-@router.get("/forecast", response_model=ForecastOut)
-def get_forecast(
-    session: SessionDep,
-    station: Annotated[list[str] | None, Query(description="Kode stasiun")] = None,
-) -> ForecastOut:
-    stmt = select(Forecast).join(Forecast.station).order_by(Station.code, Forecast.horizon)
-    if station:
-        stmt = stmt.where(Station.code.in_(station))
-    rows = session.scalars(stmt).all()
-    mv = session.get(ModelVersion, rows[0].model_version_id) if rows else None
-    return ForecastOut(
-        model_version_id=mv.id if mv else None,
-        model_version=mv.version if mv else None,
-        generated_at=max(r.created_at for r in rows) if rows else None,
-        interval=mv.metrics.get("interval") if mv else None,
-        items=[
-            ForecastDay(
-                station_code=r.station.code,
-                station_name=r.station.name,
-                origin_date=r.origin_date,
-                target_date=r.target_date,
-                horizon=r.horizon,
-                kategori=r.kategori,
-                kategori_upper=r.kategori_upper,
-                critical=r.critical,
-                max_yhat=r.max_yhat,
-                alert=severity(r.kategori) >= _UNHEALTHY,
-                alert_possible=severity(r.kategori_upper) >= _UNHEALTHY,
-                values=r.values,
-            )
-            for r in rows
-        ],
-    )

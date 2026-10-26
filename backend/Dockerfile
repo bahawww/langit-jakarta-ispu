@@ -1,6 +1,6 @@
 FROM python:3.12-slim
 
-# libgomp1: runtime OpenMP untuk LightGBM / scikit-learn
+# libgomp1: runtime OpenMP untuk scikit-learn
 RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --create-home --uid 10001 app

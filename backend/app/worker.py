@@ -70,7 +70,7 @@ def enqueue_after_ingest(upload: Upload) -> bool:
 @worker_ready.connect
 def _initial_training(**_) -> None:
     with session_factory()() as s:
-        missing = [t for t in ("classification", "forecast") if champion(s, t) is None]
+        missing = [t for t in ("classification",) if champion(s, t) is None]
     if missing:
         log.info("belum ada champion, training awal dijadwalkan", extra={"tasks": missing})
         train.delay(trigger="initial")

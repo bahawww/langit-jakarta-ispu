@@ -1,7 +1,6 @@
 """Klasifikasi kategori ISPU dari 6 polutan di hari yang sama.
 
-Catatan: kategori ditentukan langsung dari max(6 polutan), jadi aturan ambang adalah
-baseline yang hampir sempurna. Model ML dilaporkan apa adanya terhadap baseline ini.
+Hanya model dasar scikit-learn (Decision Tree, Random Forest, kNN k=5), tanpa tuning.
 """
 
 from dataclasses import dataclass, field
@@ -16,7 +15,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 
-from ispu_ml.ispu import POLLUTANTS, kategori_array
+from ispu_ml.ispu import POLLUTANTS
 from ispu_ml.metrics import classification_metrics, ordered_labels
 
 FEATURES = list(POLLUTANTS)
@@ -30,11 +29,6 @@ def candidates(seed: int) -> dict[str, BaseEstimator]:
         "random_forest": RandomForestClassifier(random_state=seed, n_jobs=4),
         "knn": make_pipeline(StandardScaler(), KNeighborsClassifier(n_neighbors=5)),
     }
-
-
-def rule_predict(X: pd.DataFrame) -> np.ndarray:
-    """Baseline aturan ambang ISPU: kategori dari nilai polutan tertinggi."""
-    return kategori_array(X[FEATURES].max(axis=1).to_numpy())
 
 
 def _evaluate(y_true: pd.Series, y_pred: np.ndarray, y_ispu: pd.Series, labels: list[str]) -> dict:
@@ -101,23 +95,15 @@ def train_classification(
         stratified_metrics[name] = _evaluate(
             s_test[TARGET], strat.predict(s_test[FEATURES]), s_test["kategori_ispu"], labels
         )
-    holdout_metrics["rule_baseline"] = _evaluate(
-        holdout[TARGET], rule_predict(holdout), holdout["kategori_ispu"], labels
-    )
-    stratified_metrics["rule_baseline"] = _evaluate(
-        s_test[TARGET], rule_predict(s_test), s_test["kategori_ispu"], labels
-    )
 
     best = max(
         models,
         key=lambda n: (holdout_metrics[n][PRIMARY_METRIC], holdout_metrics[n]["accuracy"]),
     )
-    rule = holdout_metrics["rule_baseline"]
     metrics = {
         "primary_metric": PRIMARY_METRIC,
         "holdout": holdout_metrics,
         "stratified_80_20": stratified_metrics,
-        "beats_rule_baseline": holdout_metrics[best][PRIMARY_METRIC] > rule[PRIMARY_METRIC],
         "n_train": len(train),
         "n_holdout": len(holdout),
         "n_stratified_test": len(s_test),
