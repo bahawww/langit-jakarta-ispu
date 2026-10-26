@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard ISPU DKI Jakarta</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --header: #14213d;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --muted: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --border: rgba(11,11,11,0.10);
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --good: #0ca30c;
+  --warning: #fab219;
+  --critical: #d03b3b;
+  --good-text: #006300;
+  --bad-text: #b02a2a;
+  --cm-rgb: 42,120,214;
+  --gap: 16px;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --header: #10192e;
+    --text-primary: #f0efec;
+    --text-secondary: #c3c2b7;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --border: rgba(255,255,255,0.10);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --good-text: #0ca30c;
+    --bad-text: #e66767;
+    --cm-rgb: 57,135,229;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --header: #10192e;
+  --text-primary: #f0efec;
+  --text-secondary: #c3c2b7;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --border: rgba(255,255,255,0.10);
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --good-text: #0ca30c;
+  --bad-text: #e66767;
+  --cm-rgb: 57,135,229;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--page);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+.dashboard-container { max-width: 1400px; margin: 0 auto; padding: var(--gap); }
+
+.dashboard-header {
+  background: var(--header);
+  color: #fff;
+  padding: 20px 24px;
+  border-radius: var(--radius);
+  margin-bottom: var(--gap);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.dashboard-header h1 { font-size: 20px; font-weight: 650; }
+.dashboard-header .subtitle { font-size: 13px; color: rgba(255,255,255,0.72); margin-top: 2px; }
+.filters { display: flex; gap: 12px; flex-wrap: wrap; }
+.filter-group { display: flex; flex-direction: column; gap: 2px; }
+.filter-group label { font-size: 11px; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.5px; }
+.filter-group select {
+  padding: 6px 10px;
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 6px;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  font-size: 13px;
+  min-width: 150px;
+}
+.filter-group select option { background: var(--header); color: #fff; }
+
+.section-title {
+  font-size: 13px; font-weight: 650; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 0.6px;
+  margin: 24px 2px 10px;
+}
+
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: var(--gap);
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  min-width: 0;
+}
+.kpi-label { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+.kpi-value { font-size: 28px; font-weight: 700; margin: 2px 0; }
+.kpi-sub { font-size: 12.5px; color: var(--text-secondary); }
+
+.chart-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr));
+  gap: var(--gap);
+  margin-bottom: var(--gap);
+}
+.card h3 { font-size: 15px; font-weight: 650; }
+.card .desc { font-size: 12.5px; color: var(--text-secondary); margin: 2px 0 12px; }
+.card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.chart-box { position: relative; height: 300px; }
+.chart-box.tall { height: 340px; }
+.inline-select {
+  font-size: 12.5px; padding: 4px 8px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--page); color: var(--text-primary);
+}
+
+.legend-kat { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--text-secondary); margin-bottom: 8px; }
+.legend-kat span { display: inline-flex; align-items: center; gap: 6px; }
+.swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+.badge {
+  display: inline-block; padding: 1px 8px; border-radius: 999px;
+  font-size: 11.5px; font-weight: 600; white-space: nowrap; color: #0b0b0b;
+}
+.badge.k0 { background: var(--good); color: #fff; }
+.badge.k1 { background: var(--warning); }
+.badge.k2 { background: var(--critical); color: #fff; }
+.ok { color: var(--good-text); font-weight: 600; }
+.bad { color: var(--bad-text); font-weight: 600; }
+.warn-flag { cursor: help; margin-left: 4px; }
+
+.table-wrap { overflow-x: auto; }
+table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.data-table th {
+  text-align: left; padding: 9px 10px; border-bottom: 2px solid var(--grid);
+  color: var(--text-secondary); font-weight: 600; font-size: 11.5px;
+  text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; user-select: none;
+}
+.data-table th.sortable { cursor: pointer; }
+.data-table th.sortable:hover { color: var(--text-primary); }
+.data-table td { padding: 8px 10px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+.data-table tbody tr:hover { background: var(--page); }
+.data-table .num { text-align: right; }
+.data-table tr.best td { font-weight: 650; }
+
+table.cm { border-collapse: separate; border-spacing: 3px; font-size: 13px; margin: 0 auto; font-variant-numeric: tabular-nums; }
+.cm th { font-size: 11.5px; color: var(--text-secondary); font-weight: 600; padding: 4px 8px; }
+.cm td { width: 84px; height: 54px; text-align: center; border-radius: 6px; font-weight: 650; font-size: 15px; }
+.cm td.total { background: transparent; color: var(--text-secondary); font-weight: 500; font-size: 13px; }
+.cm .axis-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+.table-tools { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; font-size: 13px; color: var(--text-secondary); }
+.table-tools label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.pager { display: flex; gap: 6px; align-items: center; }
+.pager button {
+  padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--page); color: var(--text-primary); cursor: pointer; font-size: 12.5px;
+}
+.pager button:disabled { opacity: 0.4; cursor: default; }
+
+.note { font-size: 13px; color: var(--text-secondary); }
+.note b { color: var(--text-primary); }
+.note ul { margin: 6px 0 0 18px; }
+.dashboard-footer { font-size: 12px; color: var(--muted); margin: 20px 2px 8px; }
+.dashboard-footer a { color: var(--series-1); }
+.empty { color: var(--muted); font-size: 13px; padding: 12px 0; }
+
+@media (max-width: 768px) {
+  .dashboard-header { flex-direction: column; align-items: flex-start; }
+  .filter-group select { min-width: 0; width: 100%; }
+  .filters { width: 100%; }
+  .filter-group { flex: 1 1 140px; }
+  .kpi-value { font-size: 24px; }
+  .cm td { width: 64px; height: 46px; }
+}
+@media (max-width: 480px) {
+  .card { padding: 16px 14px; }
+  .cm { border-spacing: 2px; }
+  .cm th { padding: 2px; }
+  .cm td { width: 48px; height: 42px; font-size: 13px; }
+  .cm .badge { font-size: 10px; padding: 1px 5px; }
+}
+@media print {
+  body { background: #fff; }
+  .filters, .pager { display: none; }
+  .card { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<div class="dashboard-container">
+  <header class="dashboard-header">
+    <div>
+      <h1>Kualitas Udara &amp; Prediksi Kategori ISPU DKI Jakarta</h1>
+      <div class="subtitle" id="subtitle"></div>
+    </div>
+    <div class="filters">
+      <div class="filter-group">
+        <label for="f-station">Stasiun SPKU</label>
+        <select id="f-station"><option value="all">Semua stasiun</option></select>
+      </div>
+      <div class="filter-group">
+        <label for="f-year">Tahun</label>
+        <select id="f-year"><option value="all">2024–2025</option></select>
+      </div>
+      <div class="filter-group">
+        <label for="f-model">Model</label>
+        <select id="f-model"></select>
+      </div>
+    </div>
+  </header>
+
+  <section class="kpi-row">
+    <div class="card"><div class="kpi-label">Data bersih</div><div class="kpi-value" id="kpi-clean"></div><div class="kpi-sub" id="kpi-clean-sub"></div></div>
+    <div class="card"><div class="kpi-label">Sampel uji (20%)</div><div class="kpi-value" id="kpi-test"></div><div class="kpi-sub" id="kpi-test-sub"></div></div>
+    <div class="card"><div class="kpi-label">Rata-rata PM2.5 (uji)</div><div class="kpi-value" id="kpi-pm25"></div><div class="kpi-sub" id="kpi-pm25-sub"></div></div>
+    <div class="card"><div class="kpi-label">Rata-rata PM10 (uji)</div><div class="kpi-value" id="kpi-pm10"></div><div class="kpi-sub" id="kpi-pm10-sub"></div></div>
+    <div class="card"><div class="kpi-label" id="kpi-acc-label">Akurasi model</div><div class="kpi-value" id="kpi-acc"></div><div class="kpi-sub" id="kpi-acc-sub"></div></div>
+    <div class="card"><div class="kpi-label">Hari TIDAK SEHAT</div><div class="kpi-value" id="kpi-ts"></div><div class="kpi-sub" id="kpi-ts-sub"></div></div>
+  </section>
+
+  <h2 class="section-title">Visualisasi dataset (data bersih)</h2>
+  <div class="chart-row">
+    <div class="card">
+      <h3>Tren harian PM2.5 dan PM10</h3>
+      <p class="desc">Rata-rata harian nilai indeks ISPU dari stasiun yang dipilih. Di atas 100 = TIDAK SEHAT, 51–100 = SEDANG, 0–50 = BAIK.</p>
+      <div class="chart-box tall"><canvas id="ch-trend"></canvas></div>
+    </div>
+  </div>
+  <div class="chart-row">
+    <div class="card">
+      <h3>Kategori kualitas udara per bulan</h3>
+      <p class="desc">Jumlah hari-stasiun per kategori (label aktual).</p>
+      <div class="legend-kat" data-legend></div>
+      <div class="chart-box"><canvas id="ch-month"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Parameter pencemar kritis</h3>
+      <p class="desc">Polutan dengan nilai indeks tertinggi pada tiap hari-stasiun.</p>
+      <div class="chart-box"><canvas id="ch-crit"></canvas></div>
+    </div>
+  </div>
+
+  <h2 class="section-title">Hasil prediksi &amp; evaluasi model (data uji 20%)</h2>
+  <div class="chart-row">
+    <div class="card">
+      <div class="card-head">
+        <div><h3>Kategori per stasiun</h3><p class="desc" id="station-desc"></p></div>
+        <select id="f-source" class="inline-select" aria-label="Sumber kategori">
+          <option value="pred">Prediksi model</option>
+          <option value="actual">Kategori aktual</option>
+        </select>
+      </div>
+      <div class="legend-kat" data-legend></div>
+      <div class="chart-box"><canvas id="ch-station"></canvas></div>
+    </div>
+    <div class="card">
+      <h3 id="cm-title">Confusion matrix</h3>
+      <p class="desc">Baris = kategori aktual, kolom = prediksi. Angka diagonal = tebakan tepat.</p>
+      <div class="table-wrap" id="cm"></div>
+    </div>
+  </div>
+  <div class="chart-row">
+    <div class="card">
+      <h3>Perbandingan 3 model</h3>
+      <p class="desc">Precision, recall, dan F1 memakai <b>weighted average</b> (dibobot jumlah data aktual per kelas). Semua nilai dihitung ulang mengikuti filter.</p>
+      <div class="table-wrap" id="model-table"></div>
+    </div>
+    <div class="card note" id="quality-note"></div>
+  </div>
+
+  <div class="card">
+    <h3>Tabel nilai aktual vs prediksi</h3>
+    <p class="desc" id="table-desc"></p>
+    <div class="table-tools">
+      <label><input type="checkbox" id="f-wrong"> Hanya yang meleset</label>
+      <div class="pager"><button id="pg-prev">‹ Sebelumnya</button><span id="pg-info"></span><button id="pg-next">Berikutnya ›</button></div>
+    </div>
+    <div class="table-wrap" id="detail-table"></div>
+  </div>
+
+  <footer class="dashboard-footer">
+    Sumber data: Dinas Lingkungan Hidup Provinsi DKI Jakarta,
+    <a href="https://satudata.jakarta.go.id/open-data/detail?kategori=dataset&amp;page_url=data-indeks-standar-pencemar-udara-ispu-di-provinsi-dki-jakarta" target="_blank" rel="noopener">Satu Data Jakarta</a>
+    (periode Januari 2024 – November 2025). Model dilatih di Orange Data Mining dengan pembagian 80:20 (stratified).
+    Kategori mengikuti ambang ISPU: 0–50 BAIK, 51–100 SEDANG, 101–200 TIDAK SEHAT.
+  </footer>
+</div>
+
+<script>
+const DATA = /*__DATA__*/null;
+
+// Kolom baris: 0 tanggal, 1 stasiun, 2 pm10, 3 pm25, 4 so2, 5 co, 6 o3, 7 no2, 8 max, 9 kritis, 10 kategori, [11 rf, 12 dt, 13 knn]
+const C = { date: 0, st: 1, pm10: 2, pm25: 3, max: 8, crit: 9, kat: 10 };
+const KAT = DATA.kat;
+const MODELS = [
+  { col: 11, name: 'Random Forest' },
+  { col: 12, name: 'Decision Tree' },
+  { col: 13, name: 'kNN (k=5)' },
+];
+const BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+const CRIT_LABEL = { PM25: 'PM2.5', PM10: 'PM10', SO2: 'SO₂', CO: 'CO', O3: 'O₃', NO2: 'NO₂', '': 'Tidak tercatat' };
+const STATIONS = DATA.stations.map(full => {
+  const m = full.match(/^(DKI\d+) - (.+?) \((.+)\)$/);
+  return { full, short: m ? `${m[1]} ${m[2]}` : full, area: m ? m[3] : '' };
+});
+
+const fmtInt = n => n.toLocaleString('id-ID');
+const fmtDec = (n, d = 2) => Number.isFinite(n) ? n.toLocaleString('id-ID', { minimumFractionDigits: d, maximumFractionDigits: d }) : '–';
+const fmtPct = (n, d = 2) => Number.isFinite(n) ? fmtDec(n * 100, d) + '%' : '–';
+const esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+const mean = (rows, col) => rows.length ? rows.reduce((a, r) => a + r[col], 0) / rows.length : NaN;
+const fmtDate = d => `${+d.slice(8, 10)} ${BULAN[+d.slice(5, 7) - 1]} ${d.slice(0, 4)}`;
+const fmtMonth = ym => `${BULAN[+ym.slice(5, 7) - 1]} ${ym.slice(2, 4)}`;
+// Kategori yang seharusnya menurut ambang ISPU dari nilai max
+const expectedKat = max => max <= 50 ? 0 : max <= 100 ? 1 : 2;
+const isInconsistent = r => expectedKat(r[C.max]) !== r[C.kat];
+const katBadge = k => `<span class="badge k${k}">${KAT[k]}</span>`;
+
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function metrics(rows, col) {
+  const cm = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+  rows.forEach(r => cm[r[C.kat]][r[col]]++);
+  const n = rows.length;
+  let correct = 0, wp = 0, wr = 0, wf = 0;
+  for (let k = 0; k < 3; k++) {
+    const tp = cm[k][k];
+    const actual = cm[k][0] + cm[k][1] + cm[k][2];
+    const pred = cm[0][k] + cm[1][k] + cm[2][k];
+    const p = pred ? tp / pred : 0;
+    const r = actual ? tp / actual : 0;
+    const f = p + r ? 2 * p * r / (p + r) : 0;
+    correct += tp;
+    wp += p * actual; wr += r * actual; wf += f * actual;
+  }
+  return { n, correct, cm, acc: n ? correct / n : NaN, p: n ? wp / n : NaN, r: n ? wr / n : NaN, f1: n ? wf / n : NaN };
+}
+
+class Dashboard {
+  constructor() {
+    this.state = { station: 'all', year: 'all', model: 0, source: 'pred', onlyWrong: false, sortCol: 'date', sortDir: 'asc', page: 0 };
+    this.pageSize = 25;
+    this.charts = {};
+    this.setupFilters();
+    this.buildCharts();
+    this.applyFilters();
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { this.buildCharts(); this.applyFilters(); });
+  }
+
+  setupFilters() {
+    const st = document.getElementById('f-station');
+    STATIONS.forEach((s, i) => st.add(new Option(`${s.short} (${s.area})`, i)));
+    const yr = document.getElementById('f-year');
+    [...new Set(DATA.clean.map(r => r[C.date].slice(0, 4)))].sort().forEach(y => yr.add(new Option(y, y)));
+    const md = document.getElementById('f-model');
+    MODELS.forEach((m, i) => md.add(new Option(m.name, i)));
+
+    st.onchange = e => { this.state.station = e.target.value; this.state.page = 0; this.applyFilters(); };
+    yr.onchange = e => { this.state.year = e.target.value; this.state.page = 0; this.applyFilters(); };
+    md.onchange = e => { this.state.model = +e.target.value; this.state.page = 0; this.applyFilters(); };
+    document.getElementById('f-source').onchange = e => { this.state.source = e.target.value; this.renderStationChart(); };
+    document.getElementById('f-wrong').onchange = e => { this.state.onlyWrong = e.target.checked; this.state.page = 0; this.renderTable(); };
+    document.getElementById('pg-prev').onclick = () => { this.state.page--; this.renderTable(); };
+    document.getElementById('pg-next').onclick = () => { this.state.page++; this.renderTable(); };
+
+    const legend = KAT.map((k, i) => `<span><i class="swatch" style="background:var(${['--good', '--warning', '--critical'][i]})"></i>${k}</span>`).join('');
+    document.querySelectorAll('[data-legend]').forEach(el => el.innerHTML = legend);
+    document.getElementById('subtitle').textContent =
+      `Jan 2024 – Nov 2025 · ${STATIONS.length} stasiun SPKU · ${fmtInt(DATA.rawCount)} baris mentah → ${fmtInt(DATA.clean.length)} baris bersih → ${fmtInt(DATA.test.length)} data uji`;
+  }
+
+  filterRows(rows) {
+    const { station, year } = this.state;
+    return rows.filter(r => (station === 'all' || r[C.st] === +station) && (year === 'all' || r[C.date].startsWith(year)));
+  }
+
+  applyFilters() {
+    this.clean = this.filterRows(DATA.clean);
+    this.test = this.filterRows(DATA.test);
+    this.renderKPIs();
+    this.renderTrend();
+    this.renderMonthly();
+    this.renderCrit();
+    this.renderStationChart();
+    this.renderConfusion();
+    this.renderModelTable();
+    this.renderQualityNote();
+    this.renderTable();
+  }
+
+  get model() { return MODELS[this.state.model]; }
+
+  renderKPIs() {
+    const set = (id, v) => document.getElementById(id).textContent = v;
+    set('kpi-clean', fmtInt(this.clean.length));
+    set('kpi-clean-sub', 'hari-stasiun tanpa nilai kosong');
+    set('kpi-test', fmtInt(this.test.length));
+    set('kpi-test-sub', `dari ${fmtInt(this.clean.length)} data bersih`);
+    set('kpi-pm25', fmtDec(mean(this.test, C.pm25)));
+    set('kpi-pm25-sub', `data bersih: ${fmtDec(mean(this.clean, C.pm25))}`);
+    set('kpi-pm10', fmtDec(mean(this.test, C.pm10)));
+    set('kpi-pm10-sub', `data bersih: ${fmtDec(mean(this.clean, C.pm10))}`);
+    const m = metrics(this.test, this.model.col);
+    set('kpi-acc-label', `Akurasi ${this.model.name}`);
+    set('kpi-acc', fmtPct(m.acc));
+    set('kpi-acc-sub', `${fmtInt(m.correct)} dari ${fmtInt(m.n)} tebakan tepat`);
+    const ts = this.clean.filter(r => r[C.kat] === 2).length;
+    set('kpi-ts', fmtPct(this.clean.length ? ts / this.clean.length : NaN, 1));
+    set('kpi-ts-sub', `${fmtInt(ts)} dari ${fmtInt(this.clean.length)} hari-stasiun`);
+  }
+
+  buildCharts() {
+    Object.values(this.charts).forEach(c => c.destroy());
+    const muted = cssVar('--muted'), grid = cssVar('--grid'), surface = cssVar('--surface');
+    Chart.defaults.font.family = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+    Chart.defaults.font.size = 12;
+    Chart.defaults.color = muted;
+    Chart.defaults.animation = false;
+    Chart.defaults.locale = 'id-ID';
+    const katColors = [cssVar('--good'), cssVar('--warning'), cssVar('--critical')];
+    const axis = (extra = {}) => ({ grid: { color: grid }, border: { display: false }, ...extra });
+    const tooltip = { backgroundColor: 'rgba(20,20,20,0.92)', padding: 10, cornerRadius: 6, boxPadding: 4 };
+
+    this.charts.trend = new Chart(document.getElementById('ch-trend'), {
+      type: 'line',
+      data: { labels: [], datasets: [
+        { label: 'PM2.5', data: [], borderColor: cssVar('--series-1'), backgroundColor: cssVar('--series-1'), borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 4, tension: 0.2 },
+        { label: 'PM10', data: [], borderColor: cssVar('--series-2'), backgroundColor: cssVar('--series-2'), borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 4, tension: 0.2 },
+        { label: 'Batas TIDAK SEHAT (100)', data: [], borderColor: katColors[2], borderWidth: 1.5, borderDash: [6, 4], pointRadius: 0, pointHoverRadius: 0 },
+      ] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'top', align: 'start', labels: { usePointStyle: true, pointStyle: 'line', padding: 16 } },
+          tooltip: { ...tooltip, filter: i => i.datasetIndex < 2, callbacks: {
+            title: items => fmtDate(items[0].label),
+            label: c => `${c.dataset.label}: ${fmtDec(c.parsed.y, 1)}`,
+          } },
+        },
+        scales: {
+          x: axis({ grid: { display: false }, ticks: { autoSkip: true, maxTicksLimit: 12, maxRotation: 0, callback(v) { return fmtMonth(this.getLabelForValue(v)); } } }),
+          y: axis({ beginAtZero: true, title: { display: true, text: 'Indeks ISPU' } }),
+        },
+      },
+    });
+
+    this.charts.month = new Chart(document.getElementById('ch-month'), {
+      type: 'bar',
+      data: { labels: [], datasets: KAT.map((k, i) => ({ label: k, data: [], backgroundColor: katColors[i], borderColor: surface, borderWidth: { top: 2 }, borderSkipped: false, borderRadius: 2 })) },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { display: false }, tooltip: { ...tooltip, callbacks: { title: items => fmtMonth(items[0].label) } } },
+        scales: {
+          x: axis({ stacked: true, grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, callback(v) { return fmtMonth(this.getLabelForValue(v)); } } }),
+          y: axis({ stacked: true, beginAtZero: true, title: { display: true, text: 'Hari-stasiun' } }),
+        },
+      },
+    });
+
+    this.charts.crit = new Chart(document.getElementById('ch-crit'), {
+      type: 'bar',
+      data: { labels: [], datasets: [{ label: 'Hari-stasiun', data: [], backgroundColor: cssVar('--series-1'), borderRadius: 4, barPercentage: 0.7 }] },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { ...tooltip, callbacks: {
+          label: c => {
+            const total = c.dataset.data.reduce((a, b) => a + b, 0);
+            return `${fmtInt(c.parsed.x)} hari-stasiun (${fmtPct(c.parsed.x / total, 1)})`;
+          },
+        } } },
+        scales: { x: axis({ beginAtZero: true }), y: axis({ grid: { display: false } }) },
+      },
+    });
+
+    this.charts.station = new Chart(document.getElementById('ch-station'), {
+      type: 'bar',
+      data: { labels: [], datasets: KAT.map((k, i) => ({ label: k, data: [], backgroundColor: katColors[i], borderColor: surface, borderWidth: 1, borderRadius: 4 })) },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { display: false }, tooltip },
+        scales: {
+          x: axis({ grid: { display: false }, ticks: { maxRotation: 0, autoSkip: false } }),
+          y: axis({ beginAtZero: true, title: { display: true, text: 'Jumlah data uji' } }),
+        },
+      },
+    });
+  }
+
+  renderTrend() {
+    const byDate = new Map();
+    this.clean.forEach(r => {
+      let e = byDate.get(r[C.date]);
+      if (!e) { e = { pm25: 0, pm10: 0, n: 0 }; byDate.set(r[C.date], e); }
+      e.pm25 += r[C.pm25]; e.pm10 += r[C.pm10]; e.n++;
+    });
+    const dates = [...byDate.keys()].sort();
+    const ch = this.charts.trend;
+    ch.data.labels = dates;
+    ch.data.datasets[0].data = dates.map(d => byDate.get(d).pm25 / byDate.get(d).n);
+    ch.data.datasets[1].data = dates.map(d => byDate.get(d).pm10 / byDate.get(d).n);
+    ch.data.datasets[2].data = dates.map(() => 100);
+    ch.update('none');
+  }
+
+  renderMonthly() {
+    const months = [...new Set(this.clean.map(r => r[C.date].slice(0, 7)))].sort();
+    const idx = new Map(months.map((m, i) => [m, i]));
+    const counts = KAT.map(() => months.map(() => 0));
+    this.clean.forEach(r => counts[r[C.kat]][idx.get(r[C.date].slice(0, 7))]++);
+    const ch = this.charts.month;
+    ch.data.labels = months;
+    counts.forEach((c, i) => ch.data.datasets[i].data = c);
+    ch.update('none');
+  }
+
+  renderCrit() {
+    const counts = new Map();
+    this.clean.forEach(r => counts.set(r[C.crit], (counts.get(r[C.crit]) || 0) + 1));
+    const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+    const ch = this.charts.crit;
+    ch.data.labels = sorted.map(([k]) => CRIT_LABEL[k] ?? k);
+    ch.data.datasets[0].data = sorted.map(([, v]) => v);
+    ch.update('none');
+  }
+
+  renderStationChart() {
+    const col = this.state.source === 'pred' ? this.model.col : C.kat;
+    const stIdx = this.state.station === 'all' ? STATIONS.map((_, i) => i) : [+this.state.station];
+    const counts = KAT.map(() => stIdx.map(() => 0));
+    this.test.forEach(r => { const p = stIdx.indexOf(r[C.st]); if (p >= 0) counts[r[col]][p]++; });
+    const ch = this.charts.station;
+    ch.data.labels = stIdx.map(i => STATIONS[i].short.split(' ').slice(1).join(' '));
+    counts.forEach((c, i) => ch.data.datasets[i].data = c);
+    ch.update('none');
+    document.getElementById('station-desc').textContent = this.state.source === 'pred'
+      ? `Hasil prediksi ${this.model.name} pada data uji.`
+      : 'Kategori aktual (label) pada data uji.';
+  }
+
+  renderConfusion() {
+    const m = metrics(this.test, this.model.col);
+    document.getElementById('cm-title').textContent = `Confusion matrix: ${this.model.name}`;
+    const max = Math.max(1, ...m.cm.flat());
+    const rgb = cssVar('--cm-rgb');
+    let html = `<table class="cm"><tr><th></th><th colspan="3" class="axis-label">Prediksi</th><th></th></tr>`;
+    html += `<tr><th class="axis-label">Aktual</th>${KAT.map((k, i) => `<th>${katBadge(i)}</th>`).join('')}<th>Total</th></tr>`;
+    m.cm.forEach((row, a) => {
+      html += `<tr><th>${katBadge(a)}</th>`;
+      row.forEach((v, p) => {
+        const alpha = v ? 0.12 + 0.88 * Math.sqrt(v / max) : 0.04;
+        const ink = alpha > 0.55 ? '#fff' : 'var(--text-primary)';
+        html += `<td style="background:rgba(${rgb},${alpha.toFixed(3)});color:${ink}" title="Aktual ${KAT[a]}, prediksi ${KAT[p]}">${fmtInt(v)}</td>`;
+      });
+      html += `<td class="total">${fmtInt(row[0] + row[1] + row[2])}</td></tr>`;
+    });
+    const colTot = [0, 1, 2].map(k => m.cm[0][k] + m.cm[1][k] + m.cm[2][k]);
+    html += `<tr><th>Total</th>${colTot.map(v => `<td class="total">${fmtInt(v)}</td>`).join('')}<td class="total"><b>${fmtInt(m.n)}</b></td></tr></table>`;
+    document.getElementById('cm').innerHTML = this.test.length ? html : '<p class="empty">Tidak ada data uji untuk filter ini.</p>';
+  }
+
+  renderModelTable() {
+    const rows = MODELS.map(md => ({ md, m: metrics(this.test, md.col) }));
+    const best = Math.max(...rows.map(x => x.m.acc));
+    let html = `<table class="data-table"><thead><tr><th>Model</th><th class="num">Tepat</th><th class="num">Meleset</th><th class="num">Akurasi</th><th class="num">Precision</th><th class="num">Recall</th><th class="num">F1</th></tr></thead><tbody>`;
+    rows.forEach(({ md, m }) => {
+      html += `<tr class="${m.acc === best ? 'best' : ''}"><td>${esc(md.name)}${m.acc === best ? ' ★' : ''}</td>`
+        + `<td class="num">${fmtInt(m.correct)}</td><td class="num">${fmtInt(m.n - m.correct)}</td>`
+        + `<td class="num">${fmtPct(m.acc)}</td><td class="num">${fmtDec(m.p, 4)}</td><td class="num">${fmtDec(m.r, 4)}</td><td class="num">${fmtDec(m.f1, 4)}</td></tr>`;
+    });
+    html += '</tbody></table>';
+    document.getElementById('model-table').innerHTML = this.test.length ? html : '<p class="empty">Tidak ada data uji untuk filter ini.</p>';
+  }
+
+  renderQualityNote() {
+    const badClean = this.clean.filter(isInconsistent);
+    const badTest = this.test.filter(isInconsistent);
+    const col = this.model.col;
+    const errors = this.test.filter(r => r[col] !== r[C.kat]);
+    const errOnBad = errors.filter(isInconsistent);
+    const predMatchesIspu = errOnBad.filter(r => r[col] === expectedKat(r[C.max])).length;
+    const months = [...new Set(badClean.map(r => `${STATIONS[r[C.st]].short}, ${fmtMonth(r[C.date].slice(0, 7))}`))];
+    document.getElementById('quality-note').innerHTML = `
+      <h3>Catatan kualitas label ⚠</h3>
+      <p class="desc">Label dicek ulang terhadap ambang ISPU berdasarkan nilai <code>max</code>.</p>
+      <ul>
+        <li><b>${fmtInt(badClean.length)}</b> baris data bersih punya kategori yang tidak sesuai dengan nilai max-nya${months.length ? ` (${esc(months.join('; '))})` : ''}.</li>
+        <li><b>${fmtInt(badTest.length)}</b> di antaranya masuk data uji (ditandai ⚠ di tabel bawah).</li>
+        <li><b>${fmtInt(errOnBad.length)}</b> dari ${fmtInt(errors.length)} kesalahan ${esc(this.model.name)} terjadi di baris ini.
+          Di ${fmtInt(predMatchesIspu)} baris, prediksi model justru <b>sesuai</b> ambang ISPU, jadi kesalahannya berasal dari label sumber, bukan dari model.</li>
+      </ul>
+      <p style="margin-top:8px">Label tidak diubah, agar hasil tetap sama dengan pengujian di Orange.</p>`;
+  }
+
+  renderTable() {
+    const col = this.model.col;
+    const getters = {
+      date: r => r[C.date], st: r => STATIONS[r[C.st]].short, pm25: r => r[C.pm25], pm10: r => r[C.pm10],
+      max: r => r[C.max], crit: r => CRIT_LABEL[r[C.crit]] ?? r[C.crit], kat: r => r[C.kat], pred: r => r[col],
+      status: r => r[col] === r[C.kat] ? 1 : 0,
+    };
+    const cols = [
+      ['date', 'Tanggal'], ['st', 'Stasiun'], ['pm25', 'PM2.5', 'num'], ['pm10', 'PM10', 'num'], ['max', 'Max ISPU', 'num'],
+      ['crit', 'Pencemar kritis'], ['kat', 'Aktual'], ['pred', `Prediksi ${this.model.name}`], ['status', 'Status'],
+    ];
+    let rows = this.state.onlyWrong ? this.test.filter(r => r[col] !== r[C.kat]) : this.test.slice();
+    const g = getters[this.state.sortCol], dir = this.state.sortDir === 'asc' ? 1 : -1;
+    rows.sort((a, b) => { const x = g(a), y = g(b); return (x < y ? -1 : x > y ? 1 : 0) * dir || (a[C.date] < b[C.date] ? -1 : 1); });
+
+    const pages = Math.max(1, Math.ceil(rows.length / this.pageSize));
+    this.state.page = Math.min(Math.max(0, this.state.page), pages - 1);
+    const start = this.state.page * this.pageSize;
+    const view = rows.slice(start, start + this.pageSize);
+
+    let html = '<table class="data-table"><thead><tr>';
+    cols.forEach(([key, label, cls]) => {
+      const arrow = this.state.sortCol === key ? (this.state.sortDir === 'asc' ? ' ▲' : ' ▼') : '';
+      html += `<th class="sortable ${cls || ''}" data-sort="${key}">${esc(label)}${arrow}</th>`;
+    });
+    html += '</tr></thead><tbody>';
+    view.forEach(r => {
+      const ok = r[col] === r[C.kat];
+      const flag = isInconsistent(r) ? `<span class="warn-flag" title="Label tidak sesuai ambang ISPU: max ${r[C.max]} seharusnya ${KAT[expectedKat(r[C.max])]}">⚠</span>` : '';
+      html += `<tr><td>${r[C.date]}</td><td>${esc(STATIONS[r[C.st]].short)}</td>`
+        + `<td class="num">${r[C.pm25]}</td><td class="num">${r[C.pm10]}</td><td class="num">${r[C.max]}</td>`
+        + `<td>${esc(CRIT_LABEL[r[C.crit]] ?? r[C.crit])}</td><td>${katBadge(r[C.kat])}${flag}</td><td>${katBadge(r[col])}</td>`
+        + `<td class="${ok ? 'ok' : 'bad'}">${ok ? '✓ Tepat' : '✗ Meleset'}</td></tr>`;
+    });
+    html += '</tbody></table>';
+    const box = document.getElementById('detail-table');
+    box.innerHTML = rows.length ? html : '<p class="empty">Tidak ada baris untuk filter ini.</p>';
+    box.querySelectorAll('th[data-sort]').forEach(th => th.onclick = () => {
+      const key = th.dataset.sort;
+      if (this.state.sortCol === key) this.state.sortDir = this.state.sortDir === 'asc' ? 'desc' : 'asc';
+      else { this.state.sortCol = key; this.state.sortDir = 'asc'; }
+      this.renderTable();
+    });
+
+    document.getElementById('pg-info').textContent = rows.length
+      ? `${fmtInt(start + 1)}–${fmtInt(start + view.length)} dari ${fmtInt(rows.length)}` : '0 baris';
+    document.getElementById('pg-prev').disabled = this.state.page === 0;
+    document.getElementById('pg-next').disabled = this.state.page >= pages - 1;
+    const wrong = this.test.filter(r => r[col] !== r[C.kat]).length;
+    document.getElementById('table-desc').textContent =
+      `${fmtInt(this.test.length)} data uji · ${fmtInt(this.test.length - wrong)} tepat, ${fmtInt(wrong)} meleset (${this.model.name}). Klik judul kolom untuk mengurutkan.`;
+  }
+}
+
+const dashboard = new Dashboard();
+</script>
+</body>
+</html>
