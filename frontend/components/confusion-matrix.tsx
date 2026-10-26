@@ -1,3 +1,4 @@
+import { ScrollX } from "@/components/ui/scroll-x";
 import { fmt } from "@/lib/format";
 import { kategoriStyle } from "@/lib/kategori";
 
@@ -13,7 +14,7 @@ export function ConfusionMatrix({
 }) {
   const max = Math.max(1, ...matrix.flat());
   return (
-    <div className="overflow-x-auto">
+    <ScrollX label="Konten lebar, geser horizontal">
       <table className="text-sm">
         <caption className="mb-2 text-left text-xs text-muted-foreground">{caption}</caption>
         <thead>
@@ -49,6 +50,6 @@ export function ConfusionMatrix({
           ))}
         </tbody>
       </table>
-    </div>
+    </ScrollX>
   );
 }

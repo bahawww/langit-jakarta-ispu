@@ -6,6 +6,7 @@ import { EChart, useChartColors } from "@/components/chart";
 import { FilterBar } from "@/components/filter-bar";
 import { PageHeader } from "@/components/page-header";
 import { ChartSkeleton, QueryView } from "@/components/states";
+import { ScrollX } from "@/components/ui/scroll-x";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useApi, type StationStats } from "@/lib/api";
@@ -128,7 +129,7 @@ export function StasiunView() {
               isEmpty={(d) => d.length === 0}
             >
               {(d) => (
-                <div className="overflow-x-auto">
+                <ScrollX label="Statistik per stasiun">
                   <table className="w-full min-w-[640px] text-sm">
                     <caption className="sr-only">Statistik per stasiun</caption>
                     <thead>
@@ -182,7 +183,7 @@ export function StasiunView() {
                       })}
                     </tbody>
                   </table>
-                </div>
+                </ScrollX>
               )}
             </QueryView>
           </CardBody>

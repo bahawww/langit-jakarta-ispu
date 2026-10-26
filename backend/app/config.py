@@ -17,6 +17,14 @@ class Settings(BaseSettings):
     cookie_secure: bool = True
     session_hours: int = 8
     upload_max_bytes: int = 5 * 1024 * 1024
+    # Sinkronisasi opsional dari portal Satu Data Jakarta. URL = resource resmi yang dicantumkan
+    # di data.go.id untuk dataset ini (bukan tebakan). Mati secara default.
+    satudata_sync: bool = False
+    satudata_url: str = (
+        "https://satudata.jakarta.go.id/backend/restapi/v1/datasets/export/"
+        "4a01bb54c2ab6ed3270b9e2b0950d584/"
+        "data-indeks-standar-pencemar-udara-ispu-di-provinsi-dki-jakarta.csv"
+    )
 
 
 @lru_cache

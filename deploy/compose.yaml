@@ -21,6 +21,7 @@ x-backend-env: &backend-env
   DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-ispu}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ispu}
   REDIS_URL: redis://redis:6379/0
   LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  SATUDATA_SYNC: ${SATUDATA_SYNC:-false}
 
 services:
   postgres:
@@ -32,6 +33,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?isi POSTGRES_PASSWORD di deploy/.env}
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ../backups:/backups:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
@@ -119,6 +121,32 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+
+  backup:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "/backup.sh"]
+    environment:
+      TZ: Asia/Jakarta
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER:-ispu}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB:-ispu}
+      BACKUP_KEEP: ${BACKUP_KEEP:-14}
+      BACKUP_HOUR: ${BACKUP_HOUR:-1}
+    volumes:
+      - ./backup.sh:/backup.sh:ro
+      - ../backups:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      # sehat bila ada backup < 26 jam
+      test: ["CMD-SHELL", "find /backups -name 'ispu-*.dump' -mmin -1560 | grep -q ."]
+      interval: 5m
+      timeout: 10s
+      start_period: 2m
+      retries: 2
 
   web:
     build:

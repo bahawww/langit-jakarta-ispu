@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { QueryView } from "@/components/states";
 import { Button } from "@/components/ui/button";
+import { ScrollX } from "@/components/ui/scroll-x";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -165,7 +166,7 @@ function UploadCard() {
         description="Format mentah Satu Data Jakarta atau format bersih. Baris di-upsert per (tanggal, stasiun); baris N/A ditolak beserta alasannya."
       />
       <CardBody className="grid gap-4">
-        <form onSubmit={onSubmit} className="flex flex-wrap items-end gap-3">
+        <form onSubmit={onSubmit} className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <label htmlFor="csv" className="text-xs font-medium text-muted-foreground">
               File CSV (maks. 5 MB)
@@ -177,7 +178,7 @@ function UploadCard() {
               type="file"
               accept=".csv,text/csv"
               aria-describedby={error ? "csv-error" : undefined}
-              className="min-h-11 w-full rounded-md border border-border bg-card p-2 text-sm file:mr-3 file:cursor-pointer file:rounded file:border-0 file:bg-muted file:px-3 file:py-1.5"
+              className="min-h-11 w-full max-w-full min-w-0 rounded-md border border-border bg-card p-2 text-sm file:mr-3 file:cursor-pointer file:rounded file:border-0 file:bg-muted file:px-3 file:py-1.5"
             />
           </div>
           <Button type="submit" disabled={upload.isPending}>
@@ -198,7 +199,7 @@ function UploadCard() {
             isEmpty={(d) => d.length === 0}
           >
             {(rows) => (
-              <div className="overflow-x-auto">
+              <ScrollX label="Riwayat upload">
                 <table className="w-full min-w-[640px] text-sm">
                   <caption className="sr-only">Riwayat upload</caption>
                   <thead>
@@ -242,7 +243,7 @@ function UploadCard() {
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </ScrollX>
             )}
           </QueryView>
         </div>
@@ -369,7 +370,7 @@ function RegistryCard() {
           isEmpty={(d) => d.length === 0}
         >
           {(d) => (
-            <div className="overflow-x-auto">
+            <ScrollX label="Versi model">
               <table className="w-full min-w-[720px] text-sm">
                 <caption className="sr-only">Versi model</caption>
                 <thead>
@@ -437,7 +438,7 @@ function RegistryCard() {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ScrollX>
           )}
         </QueryView>
       </CardBody>

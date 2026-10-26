@@ -27,7 +27,11 @@ celery.conf.update(
             "task": "ispu.train",
             "schedule": crontab(hour=2, minute=0, day_of_week="sunday"),
             "kwargs": {"trigger": "schedule"},
-        }
+        },
+        "sync-satudata-harian": {
+            "task": "ispu.sync_satudata",
+            "schedule": crontab(hour=3, minute=0),
+        },
     },
 )
 
@@ -36,6 +40,23 @@ celery.conf.update(
 def train(trigger: str = "manual", upload_id: int | None = None) -> dict:
     run = run_training(session_factory(), trigger=trigger, upload_id=upload_id)
     return {"run_id": run.id, "status": run.status, "message": run.message}
+
+
+@celery.task(name="ispu.sync_satudata")
+def sync_satudata() -> dict:
+    if not get_settings().satudata_sync:
+        return {"status": "disabled"}
+    from app.sync import sync
+
+    with session_factory()() as s:
+        upload = sync(s)
+    if upload is None:
+        return {"status": "unchanged"}
+    return {
+        "status": upload.status,
+        "upload_id": upload.id,
+        "retrain": enqueue_after_ingest(upload),
+    }
 
 
 def enqueue_after_ingest(upload: Upload) -> bool:

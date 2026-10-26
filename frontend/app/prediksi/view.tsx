@@ -7,6 +7,7 @@ import { EChart, timeAxisLabel, useChartColors } from "@/components/chart";
 import { KategoriBadge } from "@/components/kategori-badge";
 import { PageHeader } from "@/components/page-header";
 import { ChartSkeleton, EmptyState, QueryView } from "@/components/states";
+import { ScrollX } from "@/components/ui/scroll-x";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Field, Select } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -69,7 +70,7 @@ function Grid({ items }: { items: ForecastDay[] }) {
   const dates = [...new Set(items.map((i) => i.target_date))].sort();
   const at = new Map(items.map((i) => [`${i.station_code}|${i.target_date}`, i]));
   return (
-    <div className="overflow-x-auto">
+    <ScrollX label="Kategori prediksi per stasiun per hari">
       <table className="w-full min-w-[720px] text-sm">
         <caption className="sr-only">Kategori prediksi per stasiun per hari</caption>
         <thead>
@@ -112,7 +113,7 @@ function Grid({ items }: { items: ForecastDay[] }) {
           ))}
         </tbody>
       </table>
-    </div>
+    </ScrollX>
   );
 }
 

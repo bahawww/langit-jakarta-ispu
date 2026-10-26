@@ -6,6 +6,7 @@ import { EChart, useChartColors } from "@/components/chart";
 import { ConfusionMatrix } from "@/components/confusion-matrix";
 import { PageHeader } from "@/components/page-header";
 import { ChartSkeleton, EmptyState, QueryView } from "@/components/states";
+import { ScrollX } from "@/components/ui/scroll-x";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Field, Select } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -86,7 +87,7 @@ function Classification({ mv }: { mv: ModelVersion }) {
           )}{" "}
           Nilai ML sebenarnya ada di forecasting.
         </p>
-        <div className="overflow-x-auto">
+        <ScrollX label="Perbandingan model klasifikasi">
           <table className="w-full min-w-[720px] text-sm">
             <caption className="sr-only">Perbandingan model klasifikasi</caption>
             <thead>
@@ -142,7 +143,7 @@ function Classification({ mv }: { mv: ModelVersion }) {
               })}
             </tbody>
           </table>
-        </div>
+        </ScrollX>
         <div>
           <Field label="Confusion matrix untuk model" htmlFor="cm-model" className="mb-3 max-w-xs">
             <Select id="cm-model" value={pick} onChange={(e) => setPick(e.target.value)}>
@@ -188,7 +189,7 @@ function Orange() {
         >
           {(d) => (
             <>
-              <div className="overflow-x-auto">
+              <ScrollX label="Metrik model Orange">
                 <table className="w-full min-w-[640px] text-sm">
                   <caption className="sr-only">Metrik model Orange</caption>
                   <thead>
@@ -234,7 +235,7 @@ function Orange() {
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </ScrollX>
               <p className="text-sm text-muted-foreground">
                 {fmt.int(d.label_inconsistent)} baris uji berlabel tidak sesuai ambang ISPU;
                 sebagian “kesalahan” model berasal dari label sumber.
@@ -349,7 +350,7 @@ function Forecast({ mv }: { mv: ModelVersion }) {
         }
       />
       <CardBody className="grid gap-5">
-        <div className="overflow-x-auto">
+        <ScrollX label="Ringkasan metrik forecast">
           <table className="w-full min-w-[520px] text-sm">
             <caption className="sr-only">Ringkasan metrik forecast</caption>
             <thead>
@@ -377,7 +378,7 @@ function Forecast({ mv }: { mv: ModelVersion }) {
               ))}
             </tbody>
           </table>
-        </div>
+        </ScrollX>
         <p className="rounded-md border border-border bg-muted p-3 text-sm">
           {m.beats_baselines
             ? "Rata-rata MAE LightGBM lebih kecil dari kedua baseline."
@@ -409,7 +410,7 @@ function History() {
             isEmpty={(d) => d.length === 0}
           >
             {(d) => (
-              <div className="overflow-x-auto">
+              <ScrollX label="Versi model">
                 <table className="w-full min-w-[560px] text-sm">
                   <caption className="sr-only">Versi model</caption>
                   <thead>
@@ -453,7 +454,7 @@ function History() {
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </ScrollX>
             )}
           </QueryView>
         </CardBody>

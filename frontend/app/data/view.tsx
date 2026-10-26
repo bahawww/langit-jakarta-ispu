@@ -9,6 +9,7 @@ import { KategoriBadge } from "@/components/kategori-badge";
 import { PageHeader } from "@/components/page-header";
 import { QueryView } from "@/components/states";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { ScrollX } from "@/components/ui/scroll-x";
 import { Card, CardBody } from "@/components/ui/card";
 import { Field, Input, Select } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -129,7 +130,7 @@ export function DataView() {
             isEmpty={(d) => d.total === 0}
           >
             {(d) => (
-              <div className="overflow-x-auto">
+              <ScrollX label="Data pengukuran ISPU, halaman">
                 <table className="w-full min-w-[960px] text-sm">
                   <caption className="sr-only">
                     Data pengukuran ISPU, halaman {page} dari {pages}
@@ -208,7 +209,7 @@ export function DataView() {
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </ScrollX>
             )}
           </QueryView>
           <nav aria-label="Paginasi" className="mt-4 flex items-center justify-between gap-3">

@@ -6,6 +6,7 @@ import { BULAN, EChart, timeAxisLabel, useChartColors } from "@/components/chart
 import { FilterBar } from "@/components/filter-bar";
 import { PageHeader } from "@/components/page-header";
 import { ChartSkeleton, QueryView } from "@/components/states";
+import { ScrollX } from "@/components/ui/scroll-x";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Field, Select } from "@/components/ui/field";
 import { useApi, type DailyPoint, type Meta, type MonthlyCount } from "@/lib/api";
@@ -134,7 +135,7 @@ function CalendarHeatmap({ data, years }: { data: DailyPoint[]; years: number[] 
     [data, years, present, c],
   );
   return (
-    <div className="overflow-x-auto">
+    <ScrollX label="Konten lebar, geser horizontal">
       <div className="min-w-[720px]">
         <EChart
           option={option}
@@ -142,7 +143,7 @@ function CalendarHeatmap({ data, years }: { data: DailyPoint[]; years: number[] 
           label="Kalender kategori kualitas udara harian; warna dan legenda menunjukkan kategori terburuk antar-stasiun"
         />
       </div>
-    </div>
+    </ScrollX>
   );
 }
 
