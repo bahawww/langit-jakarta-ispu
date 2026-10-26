@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { DateInput } from "@/components/ui/date-input";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Field, Select } from "@/components/ui/field";
 import { useApi, type Meta } from "@/lib/api";
 import { useFilters } from "@/lib/filters";
@@ -36,26 +36,20 @@ export function FilterBar({
         </Select>
       </Field>
       {showDates ? (
-        <>
-          <Field label="Dari tanggal (dd/mm/yyyy)" htmlFor="f-start" className="lg:w-44">
-            <DateInput
-              id="f-start"
-              min={m?.date_min ?? undefined}
-              max={filters.end ?? m?.date_max ?? undefined}
-              value={filters.start}
-              onChange={(v) => setParam("start", v)}
-            />
-          </Field>
-          <Field label="Sampai tanggal (dd/mm/yyyy)" htmlFor="f-end" className="lg:w-44">
-            <DateInput
-              id="f-end"
-              min={filters.start ?? m?.date_min ?? undefined}
-              max={m?.date_max ?? undefined}
-              value={filters.end}
-              onChange={(v) => setParam("end", v)}
-            />
-          </Field>
-        </>
+        <div className="flex min-w-0 flex-col gap-1 lg:w-72">
+          <span id="f-date-label" className="text-xs font-medium text-muted-foreground">
+            Tanggal
+          </span>
+          <DateRangePicker
+            id="f-date"
+            labelledBy="f-date-label"
+            value={{ start: filters.start, end: filters.end }}
+            onChange={(v) => setParams({ start: v.start, end: v.end })}
+            min={m?.date_min ?? undefined}
+            max={m?.date_max ?? undefined}
+            years={m?.years}
+          />
+        </div>
       ) : null}
       {children}
       {active ? (

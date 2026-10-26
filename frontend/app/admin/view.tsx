@@ -9,6 +9,7 @@ import { QueryView } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { ScrollX } from "@/components/ui/scroll-x";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { FileDrop } from "@/components/ui/file-drop";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   apiGet,
@@ -129,7 +130,7 @@ function UploadReport({ upload }: { upload: UploadOut }) {
 
 function UploadCard() {
   const refresh = useRefreshAll();
-  const input = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [clientError, setClientError] = useState<string | null>(null);
   const [result, setResult] = useState<UploadOut | null>(null);
   const history = useApi<UploadOut[]>("/admin/uploads", { limit: 10 });
@@ -141,14 +142,13 @@ function UploadCard() {
     },
     onSuccess: (u) => {
       setResult(u);
-      if (input.current) input.current.value = "";
+      setFile(null);
       void refresh();
     },
   });
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const file = input.current?.files?.[0];
     setClientError(null);
     if (!file) return setClientError("Pilih file CSV terlebih dahulu");
     if (!file.name.toLowerCase().endsWith(".csv"))
@@ -166,22 +166,21 @@ function UploadCard() {
         description="Format mentah Satu Data Jakarta atau format bersih. Baris di-upsert per (tanggal, stasiun); baris N/A ditolak beserta alasannya."
       />
       <CardBody className="grid gap-4">
-        <form onSubmit={onSubmit} className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <div className="flex min-w-0 flex-1 flex-col gap-1">
-            <label htmlFor="csv" className="text-xs font-medium text-muted-foreground">
-              File CSV (maks. 5 MB)
-            </label>
-            <input
-              ref={input}
-              id="csv"
-              name="file"
-              type="file"
-              accept=".csv,text/csv"
-              aria-describedby={error ? "csv-error" : undefined}
-              className="min-h-11 w-full max-w-full min-w-0 rounded-md border border-border bg-card p-2 text-sm file:mr-3 file:cursor-pointer file:rounded file:border-0 file:bg-muted file:px-3 file:py-1.5"
-            />
-          </div>
-          <Button type="submit" disabled={upload.isPending}>
+        <form onSubmit={onSubmit} className="grid grid-cols-[minmax(0,1fr)] gap-3">
+          <FileDrop
+            id="csv"
+            label="File CSV (maks. 5 MB)"
+            accept=".csv,text/csv"
+            file={file}
+            onFile={(f) => {
+              setFile(f);
+              setClientError(null);
+              upload.reset();
+            }}
+            describedBy={error ? "csv-error" : undefined}
+            hint="Maks. 5 MB · format mentah Satu Data Jakarta atau format bersih"
+          />
+          <Button type="submit" disabled={upload.isPending} className="sm:w-fit">
             <Upload aria-hidden /> {upload.isPending ? "Memproses…" : "Upload"}
           </Button>
         </form>
@@ -191,7 +190,7 @@ function UploadCard() {
           </p>
         ) : null}
         {result ? <UploadReport upload={result} /> : null}
-        <div>
+        <div className="min-w-0">
           <h3 className="mb-2 text-sm font-semibold">Riwayat upload</h3>
           <QueryView
             query={history}

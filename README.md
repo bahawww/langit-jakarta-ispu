@@ -62,6 +62,13 @@ Dokumentasi API: `http://127.0.0.1:8300/api/docs`.
 Frontend dev dengan hot reload: `cd frontend && npm ci && API_PROXY=http://127.0.0.1:8300 npm run dev`.
 Tipe TypeScript API dibuat dari OpenAPI: `npm run gen:api` (butuh stack berjalan).
 
+## Filter
+
+Filter stasiun dan tanggal tersimpan di URL (`?station=DKI5&start=2025-05-01&end=2025-05-22`), jadi
+tampilan bisa dibagikan lewat tautan. Pemilih tanggal berupa kalender rentang (dua klik: awal lalu
+akhir) dengan pilihan cepat: 7/30/90 hari terakhir, per tahun, dan semua data. Batas kalender
+mengikuti rentang data di database, dan "terakhir" dihitung dari **tanggal data terakhir**, bukan hari ini.
+
 ## Deploy ke VPS
 
 1. Jalankan stack seperti di atas (sudah berjalan di VPS ini, repo `~/Kuliah/Dataset Training AI`).
@@ -77,7 +84,7 @@ Tipe TypeScript API dibuat dari OpenAPI: `npm run gen:api` (butuh stack berjalan
 
 ## Upload data
 
-Login di `/admin` → **Upload data CSV**. Diterima format mentah Satu Data (BOM ganda, nama stasiun
+Login di `/admin` → **Upload data CSV** (tarik-lepas file ke area upload atau klik untuk memilih). Diterima format mentah Satu Data (BOM ganda, nama stasiun
 tidak seragam, `N/A`) maupun format bersih. Pipeline: validasi skema → normalisasi stasiun (kode
 `DKIn`; stasiun baru otomatis dibuat) → baris `N/A`/tanggal tidak valid/`max` tidak cocok ditolak
 beserta alasannya → hitung `kategori_ispu` dari `max` → flag `label_inconsistent` (tidak dihapus) →

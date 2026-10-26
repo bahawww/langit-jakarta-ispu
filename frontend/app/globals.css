@@ -65,3 +65,20 @@ body {
     animation-duration: 0.01ms !important;
   }
 }
+
+/* Kalender (react-day-picker): warna mengikuti token tema; tombol navigasi 44px untuk target sentuh.
+   Selector `dialog .rdp-root` agar menang atas style.css library yang dimuat belakangan. */
+dialog .rdp-root {
+  --rdp-accent-color: var(--primary);
+  --rdp-accent-background-color: var(--muted);
+  --rdp-range_start-color: var(--primary-foreground);
+  --rdp-range_start-background: var(--primary);
+  --rdp-range_end-color: var(--primary-foreground);
+  --rdp-range_end-background: var(--primary);
+  --rdp-range_middle-color: var(--foreground);
+  --rdp-range_middle-background-color: var(--muted);
+  --rdp-today-color: var(--ring);
+  --rdp-nav-height: 2.75rem;
+  --rdp-nav_button-height: 2.75rem;
+  --rdp-nav_button-width: 2.75rem;
+}

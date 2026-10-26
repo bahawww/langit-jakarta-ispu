@@ -100,7 +100,7 @@ export function OverviewView() {
           {() => null}
         </QueryView>
       ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 [&>*:nth-child(5)]:max-sm:col-span-2">
           <Kpi
             label="Jumlah data"
             loading={summary.isPending}
