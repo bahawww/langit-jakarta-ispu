@@ -2,9 +2,16 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-/** Kartu design system: surface + border 1px + radius-lg + padding 24px, isi tersusun vertikal. */
-export function Card({ className, ...props }: React.HTMLAttributes<HTMLElement>) {
-  return <section className={cn("ua-card min-w-0", className)} {...props} />;
+/**
+ * Bagian halaman. Isi duduk langsung di latar; `panel` hanya untuk isi yang perlu dikelompokkan
+ * (matriks, formulir, catatan), sesuai prinsip "sedikit kotak" design system.
+ */
+export function Card({
+  className,
+  panel,
+  ...props
+}: React.HTMLAttributes<HTMLElement> & { panel?: boolean }) {
+  return <section className={cn("ua-card", panel && "ua-panel", className)} {...props} />;
 }
 
 export function CardHeader({
@@ -24,7 +31,7 @@ export function CardHeader({
         <h2 id={id} className="ua-card__title text-balance">
           {title}
         </h2>
-        {description ? <p className="ua-card__sub mt-0.5">{description}</p> : null}
+        {description ? <p className="ua-card__sub">{description}</p> : null}
       </div>
       {action}
     </div>

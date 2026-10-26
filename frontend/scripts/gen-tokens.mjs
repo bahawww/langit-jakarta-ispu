@@ -13,7 +13,7 @@ const block = (selector, lines) => `${selector} {\n${lines.map((l) => `  ${l}`).
 const themed = (theme) => [
   `color-scheme: ${theme};`,
   ...t.color.tokens.map((x) => `--${x.name}: ${pick(x.value, theme)};`),
-  ...t.shadow.tokens.map((x) => `--${x.name}: ${pick(x.value, theme)};`),
+  ...(t.shadow?.tokens ?? []).map((x) => `--${x.name}: ${pick(x.value, theme)};`),
 ];
 const fixed = [
   `--font-sans: ${t.type.families.sans};`,

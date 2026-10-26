@@ -241,9 +241,9 @@ export function TrenView() {
           action={
             <ChartLegend
               items={[
-                { label: "Rata-rata", color: "var(--accent)" },
+                { label: "Rata-rata", color: "var(--series-1)" },
                 { label: "Tertinggi", color: "var(--series-2)" },
-                { label: "Batas 50 dan 100", color: "var(--chart-axis)", kind: "dash" },
+                { label: "Batas 50 dan 100", color: "var(--rule)", kind: "dash" },
               ]}
             />
           }

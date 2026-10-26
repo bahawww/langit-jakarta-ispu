@@ -6,8 +6,8 @@ import { useMemo, useState } from "react";
 import { ChartLegend, EChart, timeAxisLabel, useChartColors } from "@/components/chart";
 import { FilterBar } from "@/components/filter-bar";
 import { IspuBadge } from "@/components/ispu";
-import { PageHeader } from "@/components/page-header";
-import { MetricCard } from "@/components/stat-card";
+import { Skyline } from "@/components/illustrations";
+import { MetricCard, MetricGrid } from "@/components/stat-card";
 import { ChartSkeleton, ErrorState, QueryView } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -252,11 +252,32 @@ export function OverviewView() {
 
   return (
     <>
-      <PageHeader
-        title="Hasil pelatihan model"
-        description="Hasil uji tiga model klasifikasi dasar (Decision Tree, Random Forest, dan kNN dengan k=5) pada data uji yang dipisahkan dari data latih."
-        meta={null}
-      />
+      <header className="flex flex-col gap-6 pt-4">
+        <h1 className="ua-display">Hasil pelatihan model</h1>
+        <div className="ua-skyline">
+          <Skyline />
+        </div>
+        {best && s && !empty ? (
+          <p className="ua-lead">
+            <b>{best.model}</b> menebak kategori dengan benar pada{" "}
+            <b>
+              {fmt.int(best.correct)} dari {fmt.int(s.rows)} hari uji
+            </b>{" "}
+            ({fmt.pct(best.accuracy)}).{" "}
+            {s.models
+              .filter((m) => m !== best)
+              .map((m) => `${m.model} ${fmt.int(m.correct)} hari (${fmt.pct(m.accuracy)})`)
+              .join(", ")}
+            . Ketiganya model klasifikasi dasar yang diuji pada data yang dipisahkan dari data
+            latih.
+          </p>
+        ) : (
+          <p className="ua-lead">
+            Hasil uji tiga model klasifikasi dasar (Decision Tree, Random Forest, dan kNN dengan
+            k=5) pada data uji yang dipisahkan dari data latih.
+          </p>
+        )}
+      </header>
       <FilterBar showDates={false} showYear>
         <Field label="Model untuk grafik dan tabel" htmlFor="f-model" className="lg:w-56">
           <Select
@@ -279,43 +300,42 @@ export function OverviewView() {
       {summary.error ? (
         <ErrorState error={summary.error} onRetry={() => summary.refetch()} />
       ) : (
-        <section
-          aria-label="Metrik utama"
-          className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))] gap-4"
-        >
-          <MetricCard
-            label="Total sampel uji"
-            help="Jumlah hari-stasiun pada data uji yang sesuai filter."
-            loading={summary.isPending}
-            value={`${fmt.int(s?.rows)} hari`}
-            note="Satu sampel = satu stasiun pada satu hari"
-          />
-          <MetricCard
-            label="Rata-rata PM2.5"
-            help="Indeks harian partikel halus pada data uji. Di atas 50 berarti lewat batas Baik."
-            loading={summary.isPending}
-            value={s?.avg_pm_duakomalima == null ? "–" : avg2.format(s.avg_pm_duakomalima)}
-          />
-          <MetricCard
-            label="Rata-rata PM10"
-            help="Indeks harian partikel kasar pada data uji. Satuannya indeks, bukan µg/m³."
-            loading={summary.isPending}
-            value={s?.avg_pm_sepuluh == null ? "–" : avg2.format(s.avg_pm_sepuluh)}
-          />
-          <MetricCard
-            label="Akurasi model terbaik"
-            help="Porsi tebakan kategori yang tepat pada data uji."
-            loading={summary.isPending}
-            value={empty || !best ? "Tidak ada data" : fmt.pct(best.accuracy)}
-            note={
-              s && best && !empty
-                ? `${best.model}: ${fmt.int(best.correct)} dari ${fmt.int(s.rows)} tepat. ${s.models
-                    .filter((m) => m !== best)
-                    .map((m) => `${m.model} ${fmt.pct(m.accuracy)}`)
-                    .join(", ")}`
-                : undefined
-            }
-          />
+        <section aria-label="Metrik utama">
+          <MetricGrid>
+            <MetricCard
+              label="Total sampel uji"
+              help="Jumlah hari-stasiun pada data uji yang sesuai filter."
+              loading={summary.isPending}
+              value={`${fmt.int(s?.rows)} hari`}
+              note="Satu sampel = satu stasiun pada satu hari"
+            />
+            <MetricCard
+              label="Rata-rata PM2.5"
+              help="Indeks harian partikel halus pada data uji. Di atas 50 berarti lewat batas Baik."
+              loading={summary.isPending}
+              value={s?.avg_pm_duakomalima == null ? "–" : avg2.format(s.avg_pm_duakomalima)}
+            />
+            <MetricCard
+              label="Rata-rata PM10"
+              help="Indeks harian partikel kasar pada data uji. Satuannya indeks, bukan µg/m³."
+              loading={summary.isPending}
+              value={s?.avg_pm_sepuluh == null ? "–" : avg2.format(s.avg_pm_sepuluh)}
+            />
+            <MetricCard
+              label="Akurasi model terbaik"
+              help="Porsi tebakan kategori yang tepat pada data uji."
+              loading={summary.isPending}
+              value={empty || !best ? "Tidak ada data" : fmt.pct(best.accuracy)}
+              note={
+                s && best && !empty
+                  ? `${best.model}: ${fmt.int(best.correct)} dari ${fmt.int(s.rows)} tepat. ${s.models
+                      .filter((m) => m !== best)
+                      .map((m) => `${m.model} ${fmt.pct(m.accuracy)}`)
+                      .join(", ")}`
+                  : undefined
+              }
+            />
+          </MetricGrid>
         </section>
       )}
 
@@ -346,7 +366,7 @@ export function OverviewView() {
               <>
                 <ChartLegend
                   items={[
-                    { label: "PM2.5", color: "var(--accent)" },
+                    { label: "PM2.5", color: "var(--series-1)" },
                     { label: "PM10", color: "var(--series-2)" },
                   ]}
                 />

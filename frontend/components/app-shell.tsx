@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useState, useSyncExternalStore } from "react";
 
+import { OndelOndel } from "@/components/illustrations";
 import { Button } from "@/components/ui/button";
 import { useApi, type Meta } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -47,25 +48,19 @@ function ThemeToggle() {
   );
 }
 
+/** Tugu Monas dengan api emas (logo design system). */
 function LogoMark() {
   return (
-    <span className="flex size-[38px] items-center justify-center rounded-md bg-brand text-on-brand">
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M3 8h11a3 3 0 1 0-3-3" />
-        <path d="M3 12h16a3 3 0 1 1-3 3" />
-        <path d="M3 16h7" />
-      </svg>
-    </span>
+    <svg width="22" height="28" viewBox="0 0 22 28" aria-hidden="true">
+      <path
+        d="M8 13 C8 9 10 8 11 5 C11.5 7 13 8 12.6 4 C14.6 7 14.5 10 14 13 Z"
+        fill="var(--ill-flame)"
+      />
+      <path
+        d="M8.5 13h5l-.6 1.5h-3.8z M9.6 14.5h2.8l.8 9.5H8.8z M5 24h12l2 3H3z"
+        fill="var(--text)"
+      />
+    </svg>
   );
 }
 
@@ -79,15 +74,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const links = NAV.map((n) => {
     const active = n.href === "/" ? pathname === "/" : pathname.startsWith(n.href);
     return (
-      <Link
-        key={n.href}
-        href={n.href}
-        aria-current={active ? "page" : undefined}
-        className={cn(
-          "flex min-h-11 items-center rounded-[10px] px-3.5 text-sm font-semibold no-underline transition-colors duration-200",
-          active ? "bg-sunken text-ink" : "text-ink-3 hover:text-ink",
-        )}
-      >
+      <Link key={n.href} href={n.href} aria-current={active ? "page" : undefined}>
         {n.label}
       </Link>
     );
@@ -98,18 +85,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <a href="#konten" className="ua-skip">
         Lewati ke konten
       </a>
-      <header className="sticky top-0 z-40 border-b border-line bg-surface">
-        <div className={cn("mx-auto flex max-w-[1280px] items-center gap-3 py-3", PAD)}>
-          <Link href="/" className="mr-auto flex items-center gap-3 no-underline">
+      <header>
+        <div className="ua-nav-bar">
+          <Link href="/" className="ua-brand mr-auto">
             <LogoMark />
-            <span className="flex flex-col">
-              <span className="text-base leading-5 font-extrabold tracking-[-0.01em] text-ink">
-                Udara Jakarta
-              </span>
-              <span className="text-xs leading-4 font-medium text-ink-3">Dashboard model ISPU</span>
-            </span>
+            Udara Jakarta
           </Link>
-          <nav aria-label="Navigasi utama" className="hidden items-center gap-1 lg:flex">
+          <nav aria-label="Navigasi utama" className="ua-nav hidden lg:flex">
             {links}
           </nav>
           <ThemeToggle />
@@ -133,7 +115,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <nav
             id="nav-mobile"
             aria-label="Navigasi utama"
-            className={cn("grid gap-1 border-t border-line pb-3 pt-2 lg:hidden", PAD)}
+            className={cn("ua-nav mx-auto grid max-w-[1240px] gap-0 pb-3 lg:hidden", PAD)}
           >
             {links}
           </nav>
@@ -141,26 +123,29 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </header>
       <main
         id="konten"
-        className={cn("mx-auto flex max-w-[1280px] flex-col gap-6 pt-8 pb-16", PAD)}
+        className={cn("mx-auto flex max-w-[1240px] flex-col gap-[72px] pt-6 pb-[72px]", PAD)}
       >
         {children}
       </main>
-      <footer className={cn("mx-auto max-w-[1280px] pb-10", PAD)}>
-        <div className="flex flex-col gap-1.5 border-t border-line pt-[18px] text-[13px] leading-[1.55] text-ink-3">
-          <span>
-            <strong className="font-bold text-ink-2">Sumber data:</strong> DLH Provinsi DKI Jakarta
-            via Satu Data Jakarta. Nilai polutan adalah{" "}
-            <strong className="font-semibold">nilai indeks ISPU</strong>, bukan konsentrasi µg/m³.
-          </span>
-          {meta.data ? (
+      <footer className={cn("mx-auto max-w-[1240px] pb-10", PAD)}>
+        <div className="ua-footer flex flex-wrap items-end gap-x-12 gap-y-4 pt-6 text-[14px] leading-[1.6] text-ink-3">
+          <OndelOndel />
+          <div className="flex min-w-0 max-w-[64ch] flex-1 flex-col gap-1.5">
             <span>
-              Stasiun pemantau:{" "}
-              {meta.data.stations
-                .map((s) => s.name.replace(/^DKI\d+\s*-?\s*/, "").replace(/\s*\(.*\)$/, ""))
-                .join(", ")}
-              .
+              <strong className="font-bold text-ink-2">Sumber data:</strong> DLH Provinsi DKI
+              Jakarta via Satu Data Jakarta. Nilai polutan adalah{" "}
+              <strong className="font-semibold">nilai indeks ISPU</strong>, bukan konsentrasi µg/m³.
             </span>
-          ) : null}
+            {meta.data ? (
+              <span>
+                Stasiun pemantau:{" "}
+                {meta.data.stations
+                  .map((s) => s.name.replace(/^DKI\d+\s*-?\s*/, "").replace(/\s*\(.*\)$/, ""))
+                  .join(", ")}
+                .
+              </span>
+            ) : null}
+          </div>
         </div>
       </footer>
     </>

@@ -13,6 +13,8 @@ export default defineConfig({
     locale: "id-ID",
     timezoneId: "Asia/Jakarta",
     trace: "retain-on-failure",
+    // Animasi masuk halaman memakai blur dan opacity; axe membaca kontras di tengah animasi.
+    reducedMotion: "reduce",
   },
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },

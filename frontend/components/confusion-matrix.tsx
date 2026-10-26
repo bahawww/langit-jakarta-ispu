@@ -5,7 +5,7 @@ import { isKategori, kategoriMeta } from "@/lib/kategori";
 
 /**
  * Confusion matrix sebagai tabel sungguhan (angka selalu tampil, warna hanya penegas).
- * `color` = warna model (var(--accent) atau var(--series-2)); kategori ISPU hanya muncul sebagai titik di header.
+ * `color` = warna model (var(--series-1) atau var(--series-2)); kategori ISPU hanya muncul sebagai titik di header.
  */
 export function ConfusionMatrix({
   labels,

@@ -8,7 +8,7 @@ export function ErrorState({ error, onRetry }: { error: ApiError | Error; onRetr
   return (
     <div
       role="alert"
-      className="flex flex-col items-start gap-3 rounded-md border border-border bg-warning-bg p-4 text-warning-fg"
+      className="flex flex-col items-start gap-3 rounded-[14px] bg-surface p-4 text-warn"
     >
       <div className="flex items-center gap-2 font-medium">
         <AlertTriangle aria-hidden className="size-4" />

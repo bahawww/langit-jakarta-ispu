@@ -34,7 +34,7 @@ test("hasil model: kartu metrik dari API dan filter stasiun/tahun mengubah angka
   const all = await (await request.get("/api/baseline/orange")).json();
   await page.goto("/");
   const card = (name: string) =>
-    page.getByRole("region", { name: "Metrik utama" }).locator(".ua-card", { hasText: name });
+    page.getByRole("region", { name: "Metrik utama" }).locator(".ua-metric", { hasText: name });
   await expect(card("Total sampel uji")).toContainText(`${all.rows.toLocaleString("id-ID")} hari`);
   await expect(card("Rata-rata PM2.5")).toContainText(id2.format(all.avg_pm_duakomalima));
   await expect(card("Rata-rata PM10")).toContainText(id2.format(all.avg_pm_sepuluh));

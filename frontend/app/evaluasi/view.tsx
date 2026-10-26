@@ -110,7 +110,7 @@ function Classification({ mv }: { mv: ModelVersion }) {
 
   const shown = keys
     .filter((k) => view === "compare" || view === k)
-    .map((k) => ({ key: k, name: modelLabel(k), color: "var(--accent)", metric: set[k]! }));
+    .map((k) => ({ key: k, name: modelLabel(k), color: "var(--series-1)", metric: set[k]! }));
   const counts = Object.fromEntries(
     main.labels.map((l, i) => [l, main.confusion_matrix[i]!.reduce((a, b) => a + b, 0)]),
   );
@@ -231,7 +231,7 @@ function Classification({ mv }: { mv: ModelVersion }) {
         {shown.map((x) => {
           const stats = classStats(x.metric.confusion_matrix, x.metric.labels);
           return (
-            <Card key={x.key} aria-label={`Confusion matrix ${x.name}`}>
+            <Card key={x.key} panel aria-label={`Confusion matrix ${x.name}`}>
               <div className="ua-card__head">
                 <div className="flex items-center gap-2.5">
                   <span className="ua-dot" style={{ background: x.color, width: 10, height: 10 }} />
@@ -351,7 +351,7 @@ function Orange() {
                 </Callout>
               </CardBody>
             </Card>
-            <Card aria-labelledby="h-orange-cm">
+            <Card panel aria-labelledby="h-orange-cm">
               <CardHeader
                 id="h-orange-cm"
                 title="Confusion matrix"
@@ -372,7 +372,7 @@ function Orange() {
                     <ConfusionMatrix
                       labels={d.labels}
                       matrix={x.confusion_matrix}
-                      color="var(--accent)"
+                      color="var(--series-1)"
                       name={`${pick} (Orange)`}
                     />
                   ) : null;
@@ -460,7 +460,7 @@ function History() {
               {(d) => (
                 <ul className="m-0 flex list-none flex-col gap-2 p-0">
                   {d.map((r) => (
-                    <li key={r.id} className="rounded-md border border-line p-3 text-sm">
+                    <li key={r.id} className="border-b border-line-soft py-3 text-sm">
                       <p className="m-0 font-bold">
                         #{r.id} · {r.trigger} · {r.status}
                       </p>

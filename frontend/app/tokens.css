@@ -3,28 +3,26 @@
 :root,
 [data-theme="light"] {
   color-scheme: light;
-  --bg: #f6f7fb;
-  --surface: #ffffff;
-  --surface-sunken: #eef1f8;
-  --border: #e6e8f0;
-  --border-soft: #f0f1f6;
-  --text: #0f1222;
-  --text-secondary: #3e4258;
-  --text-muted: #5e6278;
-  --brand: #151a3d;
-  --on-brand: #ffffff;
-  --accent: #3b4fd8;
-  --series-2: #e8690f;
-  --track: #eef0f6;
-  --chart-grid: #eef0f6;
-  --chart-axis: #c3c7d6;
-  --success-bg: #e2f5ec;
-  --success-fg: #0b6e4b;
-  --warning-bg: #fff4e8;
-  --warning-fg: #8a4100;
+  --bg: #f3f5f7;
+  --panel: #ffffff;
+  --chip: #e6eaf0;
+  --text: #161b26;
+  --text-secondary: #3b4252;
+  --text-muted: #5a6273;
+  --rule: #d5dae1;
+  --rule-soft: #e5e8ed;
+  --track: #e1e5ea;
+  --bar-muted: #b4bbc6;
+  --series-1: #2747c9;
+  --series-2: #b4520a;
+  --warning: #a14b05;
+  --danger: #a3262a;
+  --ill-line: #2b3140;
+  --ill-haze: #c3cad4;
+  --ill-flame: #c59a2c;
   --ispu-baik: #2e9e5b;
   --ispu-sedang: #2f6fd6;
-  --ispu-tidak-sehat: #e8b20c;
+  --ispu-tidak-sehat: #e2ac0a;
   --ispu-sangat-tidak-sehat: #d93434;
   --ispu-berbahaya: #1b1b1f;
   --ispu-baik-bg: #e3f4ea;
@@ -37,47 +35,44 @@
   --ispu-sangat-tidak-sehat-fg: #a3262a;
   --ispu-berbahaya-bg: #1b1b1f;
   --ispu-berbahaya-fg: #ffffff;
-  --shadow-card: 0 1px 2px rgba(15, 18, 34, 0.04);
-  --shadow-raised: 0 1px 3px rgba(15, 18, 34, 0.12);
   --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
-  --space-7: 48px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-  --radius-xl: 20px;
-  --radius-pill: 999px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 40px;
+  --space-8: 64px;
+  --space-9: 72px;
+  --radius-xs: 3px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
 }
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0b0d17;
-  --surface: #141726;
-  --surface-sunken: #1f2335;
-  --border: #262a3d;
-  --border-soft: #1e2234;
-  --text: #f2f3f8;
-  --text-secondary: #c9ccda;
-  --text-muted: #9da1b6;
-  --brand: #1e2550;
-  --on-brand: #ffffff;
-  --accent: #8c9bff;
-  --series-2: #ff9a52;
-  --track: #23273a;
-  --chart-grid: #20243a;
-  --chart-axis: #4a4f66;
-  --success-bg: #10291f;
-  --success-fg: #6ee7b7;
-  --warning-bg: #2b1e10;
-  --warning-fg: #ffb86b;
+  --bg: #10141c;
+  --panel: #181d28;
+  --chip: #252b38;
+  --text: #eef0f4;
+  --text-secondary: #c8ccd6;
+  --text-muted: #9aa1b0;
+  --rule: #2c3342;
+  --rule-soft: #1f2532;
+  --track: #252b38;
+  --bar-muted: #4a5263;
+  --series-1: #8ea2ff;
+  --series-2: #ff9b54;
+  --warning: #f0a35e;
+  --danger: #ff9c9c;
+  --ill-line: #aeb5c4;
+  --ill-haze: #3a4252;
+  --ill-flame: #e2be55;
   --ispu-baik: #2e9e5b;
   --ispu-sedang: #2f6fd6;
-  --ispu-tidak-sehat: #e8b20c;
+  --ispu-tidak-sehat: #e2ac0a;
   --ispu-sangat-tidak-sehat: #d93434;
   --ispu-berbahaya: #6e6e7a;
   --ispu-baik-bg: #12301f;
@@ -90,64 +85,68 @@
   --ispu-sangat-tidak-sehat-fg: #ff9c9c;
   --ispu-berbahaya-bg: #26262e;
   --ispu-berbahaya-fg: #e4e4ea;
-  --shadow-card: none;
-  --shadow-raised: none;
 }
 
 .ua-t-display {
-  font-size: 40px;
-  line-height: 44px;
+  font-size: 68px;
+  line-height: 1.02;
   font-weight: 800;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.035em;
 }
 
-.ua-t-heading-1 {
-  font-size: 22px;
-  line-height: 28px;
+.ua-t-page-title {
+  font-size: 56px;
+  line-height: 1.04;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
+.ua-t-section-title {
+  font-size: 26px;
+  line-height: 1.2;
   font-weight: 800;
   letter-spacing: -0.02em;
 }
 
-.ua-t-heading-2 {
-  font-size: 18px;
-  line-height: 24px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-.ua-t-heading-3 {
-  font-size: 16px;
-  line-height: 22px;
+.ua-t-block-title {
+  font-size: 17px;
+  line-height: 1.3;
   font-weight: 700;
 }
 
 .ua-t-stat {
-  font-size: 30px;
-  line-height: 34px;
+  font-size: 44px;
+  line-height: 1;
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.035em;
 }
 
 .ua-t-stat-sm {
-  font-size: 22px;
-  line-height: 28px;
+  font-size: 20px;
+  line-height: 1.2;
   font-weight: 800;
+}
+
+.ua-t-lead {
+  font-size: 22px;
+  line-height: 1.5;
+  font-weight: 500;
 }
 
 .ua-t-body {
   font-size: 15px;
-  line-height: 24px;
+  line-height: 1.55;
   font-weight: 400;
 }
 
-.ua-t-body-sm {
+.ua-t-small {
   font-size: 13px;
-  line-height: 20px;
+  line-height: 1.5;
   font-weight: 500;
 }
 
 .ua-t-label {
   font-size: 12px;
-  line-height: 16px;
+  line-height: 1.3;
   font-weight: 600;
 }

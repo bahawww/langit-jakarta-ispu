@@ -40,8 +40,8 @@ function useRefreshAll() {
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="ua-chip">
-      <span className="ua-chip__k">{label}</span>
+    <div className="flex flex-col">
+      <span className="text-[13px] font-semibold text-ink-3">{label}</span>
       <span className="ua-t-stat-sm">{fmt.int(value)}</span>
     </div>
   );
@@ -61,7 +61,7 @@ function UploadReport({ upload }: { upload: UploadOut }) {
         · {fmt.dateTime(upload.created_at)}
       </p>
       {upload.error ? (
-        <p role="alert" className="rounded-md bg-warning-bg p-3 text-sm text-warning-fg">
+        <p role="alert" className="rounded-[10px] bg-surface p-3 text-sm font-semibold text-warn">
           {upload.error}
         </p>
       ) : (
@@ -305,7 +305,7 @@ function TrainingCard() {
           {(d) => (
             <ul className="m-0 flex list-none flex-col gap-2 p-0 text-sm" aria-live="polite">
               {d.map((r) => (
-                <li key={r.id} className="rounded-md border border-line p-3">
+                <li key={r.id} className="border-b border-line-soft py-3">
                   <p className="font-medium">
                     #{r.id} · {r.trigger} ·{" "}
                     <span className={r.status === "failed" ? "text-destructive" : undefined}>

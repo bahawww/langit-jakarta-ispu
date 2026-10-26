@@ -39,8 +39,8 @@ export function LoginView() {
 
   return (
     <div className="mx-auto max-w-sm py-8">
-      <h1 className="ua-t-heading-1 mb-4">Login admin</h1>
-      <Card>
+      <h1 className="ua-section-title mb-4">Login admin</h1>
+      <Card panel>
         <CardBody>
           <form onSubmit={onSubmit} className="grid gap-4" noValidate>
             <Field label="Username" htmlFor="username">
@@ -56,7 +56,10 @@ export function LoginView() {
               />
             </Field>
             {error ? (
-              <p role="alert" className="rounded-md bg-warning-bg p-3 text-sm text-warning-fg">
+              <p
+                role="alert"
+                className="rounded-[10px] bg-surface p-3 text-sm font-semibold text-warn"
+              >
                 {error}
               </p>
             ) : null}

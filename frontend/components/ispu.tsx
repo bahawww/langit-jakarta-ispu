@@ -16,7 +16,7 @@ export function IspuSwatch({ token }: { token: string }) {
 /** Skala ISPU lengkap dengan rentang; satu kartu yang dipakai bersama di beberapa halaman. */
 export function IspuScaleCard() {
   return (
-    <section className="ua-card" aria-labelledby="h-skala">
+    <section className="ua-card ua-panel" aria-labelledby="h-skala">
       <div>
         <h2 id="h-skala" className="ua-card__title">
           Skala ISPU

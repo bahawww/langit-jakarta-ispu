@@ -56,7 +56,7 @@ export function FilterBar({
       ) : null}
       {showDates ? (
         <div className="flex min-w-0 flex-col gap-1 lg:w-72">
-          <span id="f-date-label" className="text-xs font-medium text-muted-foreground">
+          <span id="f-date-label" className="text-[13px] font-semibold text-ink-3">
             Tanggal
           </span>
           <DateRangePicker

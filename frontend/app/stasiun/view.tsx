@@ -128,7 +128,7 @@ export function StasiunView() {
             action={
               <ChartLegend
                 items={[
-                  { label: "PM2.5", color: "var(--accent)", kind: "dot" },
+                  { label: "PM2.5", color: "var(--series-1)", kind: "dot" },
                   { label: "PM10", color: "var(--series-2)", kind: "dot" },
                 ]}
               />

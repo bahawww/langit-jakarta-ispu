@@ -1,97 +1,93 @@
-/* Tambahan di luar bundle design system: elemen yang hanya ada di mockup dashboard
-   (kartu kesimpulan, chip meta) dan penyesuaian kecil. Semua memakai token. */
+/* Tambahan di luar bundle design system Udara Jakarta: pembungkus bagian, tabel dan matriks yang
+   dipakai dashboard ini. Semua memakai token; tidak ada bayangan dan tidak ada kotak yang tidak perlu. */
 @layer components {
-  .ua-stat__head {
-    flex-wrap: wrap;
-  }
-  .ua-stat__label {
+  /* Bagian halaman: konten duduk langsung di latar, tanpa kotak. */
+  .ua-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
     min-width: 0;
+  }
+  .ua-card__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+  .ua-card__title {
+    margin: 0;
+    font-size: 26px;
+    line-height: 1.2;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .ua-panel .ua-card__title {
+    font-size: 17px;
+    line-height: 1.3;
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+  .ua-card__sub {
+    margin: 6px 0 0;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--text-muted);
+    max-width: 64ch;
+  }
+  .ua-section-title {
+    font-size: 26px;
+    line-height: 1.2;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  .ua-section-sub {
+    margin: 0;
+    font-size: 15px;
+    color: var(--text-muted);
+  }
+
+  /* Tombol tambahan */
+  .ua-btn--ghost {
+    background: transparent;
+    color: var(--text-secondary);
+  }
+  .ua-btn--ghost:hover {
+    background: var(--chip);
+    color: var(--text);
   }
   .ua-btn--sm {
     padding: 0 var(--space-3);
     font-size: 13px;
   }
   .ua-btn--danger {
-    background: var(--ispu-sangat-tidak-sehat);
-    color: #fff;
+    background: var(--danger);
+    color: var(--bg);
   }
   .ua-btn--danger:hover {
     filter: brightness(0.92);
   }
-  .ua-btn--primary:hover {
-    color: var(--on-accent);
-  }
 
-  .ua-card__head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: var(--space-3);
+  /* Titik seri (legenda, judul model) */
+  .ua-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex: none;
   }
-
-  .ua-hero {
-    background: var(--brand);
-    color: var(--on-brand);
-    border-radius: var(--radius-xl);
-    padding: 26px 28px;
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
+  .ua-dot--a {
+    background: var(--series-1);
   }
-  .ua-hero__label {
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    opacity: 0.8;
+  .ua-dot--b {
+    background: var(--series-2);
   }
-  .ua-hero__chip {
-    font-size: 12px;
-    font-weight: 700;
-    background: rgba(255, 255, 255, 0.14);
-    padding: 5px 10px;
-    border-radius: var(--radius-pill);
-  }
-  .ua-hero__big {
-    display: block;
-    font-size: 26px;
-    line-height: 32px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-  }
-  .ua-hero__text {
-    font-size: 14px;
-    line-height: 1.5;
-    opacity: 0.85;
-  }
-
-  .ua-chip {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 10px 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 92px;
-  }
-  .ua-chip__k {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-muted);
-  }
-  .ua-chip__v {
-    font-size: 14px;
-    font-weight: 700;
-  }
-
   .ua-swatch {
     width: 14px;
     height: 14px;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-xs);
     flex: none;
-    box-shadow: inset 0 0 0 1px var(--chart-axis);
   }
   .ua-legend {
     display: flex;
@@ -117,9 +113,37 @@
     height: 0;
   }
 
+  /* Badge status */
+  .ua-badge--success {
+    background: var(--ispu-baik-bg);
+    color: var(--ispu-baik-fg);
+  }
+  .ua-badge--success::before {
+    background: var(--ispu-baik);
+  }
+  .ua-badge--warning {
+    background: var(--ispu-tidak-sehat-bg);
+    color: var(--ispu-tidak-sehat-fg);
+  }
+  .ua-badge--warning::before {
+    background: var(--ispu-tidak-sehat);
+  }
+  .ua-badge--neutral {
+    background: var(--chip);
+    color: var(--text-secondary);
+  }
+  .ua-badge--neutral::before {
+    background: var(--bar-muted);
+  }
+
+  /* Tabel: kolom teks rata kiri, nilai terbaik ditebalkan */
   .ua-table .ua-left,
   .ua-table th[scope="col"].ua-left {
     text-align: left;
+  }
+  .ua-table td:first-child,
+  .ua-table th[scope="row"]:first-child {
+    padding-left: 0;
   }
   .ua-table td.ua-mute {
     color: var(--text-muted);
@@ -128,60 +152,11 @@
   .ua-table tbody tr:last-child td {
     border-bottom: 0;
   }
-  .ua-table caption {
-    text-align: left;
-  }
-
-  /* Confusion matrix: --cm = warna model; diagonal tegas, salah tebak berwarna lembut, nol redup. */
-  .ua-cm {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-muted);
-  }
-  .ua-cm th {
-    font-weight: 600;
-    text-align: center;
-  }
-  .ua-cm th[scope="row"] {
-    text-align: left;
-    color: var(--text-secondary);
-  }
-  .ua-cm .ua-cm__corner {
-    width: 92px;
-    text-align: left;
-    font-size: 11px;
-    line-height: 1.35;
-    vertical-align: bottom;
-  }
-  .ua-cm td {
-    text-align: center;
-    border-radius: 10px;
-    padding: 16px 6px;
-    font-size: 22px;
-    line-height: 28px;
+  .ua-best {
     font-weight: 800;
-    background: color-mix(in srgb, var(--cm) 16%, var(--surface));
     color: var(--text);
+    box-shadow: inset 0 -2px 0 var(--series-1);
   }
-  [data-theme="dark"] .ua-cm td {
-    background: color-mix(in srgb, var(--cm) 24%, var(--surface));
-  }
-  .ua-cm td.is-diag {
-    background: color-mix(in srgb, var(--cm) 84%, #000);
-    color: #fff;
-  }
-  [data-theme="dark"] .ua-cm td.is-diag {
-    background: var(--cm);
-    color: var(--bg);
-  }
-  .ua-cm td.is-zero {
-    background: var(--bg);
-    color: var(--text-muted);
-  }
-
   .ua-sort {
     font: inherit;
     color: inherit;
@@ -205,23 +180,97 @@
     padding-block: 0;
   }
 
-  .ua-section-title {
-    font-size: 22px;
-    line-height: 28px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    margin: 0;
+  /* Confusion matrix: --cm = warna model; diagonal tegas, salah tebak berwarna lembut, nol redup. */
+  .ua-cm {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: var(--space-1);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
   }
-  .ua-section-sub {
-    margin: 0;
-    font-size: 14px;
+  .ua-cm th {
+    font-weight: 600;
+    text-align: center;
+  }
+  .ua-cm th[scope="row"] {
+    text-align: left;
+    color: var(--text-secondary);
+  }
+  .ua-cm .ua-cm__corner {
+    width: 92px;
+    text-align: left;
+    font-size: 11px;
+    line-height: 1.35;
+    vertical-align: bottom;
+  }
+  .ua-cm td {
+    text-align: center;
+    border-radius: var(--radius-sm);
+    padding: 16px 6px;
+    font-size: 20px;
+    line-height: 1.2;
+    font-weight: 800;
+    background: color-mix(in srgb, var(--cm) 16%, var(--panel));
+    color: var(--text);
+  }
+  [data-theme="dark"] .ua-cm td {
+    background: color-mix(in srgb, var(--cm) 24%, var(--panel));
+  }
+  .ua-cm td.is-diag {
+    background: color-mix(in srgb, var(--cm) 84%, #000);
+    color: #fff;
+  }
+  [data-theme="dark"] .ua-cm td.is-diag {
+    background: var(--cm);
+    color: var(--bg);
+  }
+  .ua-cm td.is-zero {
+    background: var(--bg);
     color: var(--text-muted);
   }
 
-  .ua-badge--neutral {
-    background: var(--surface-sunken);
-    color: var(--text-secondary);
+  /* Ringkasan hasil sebagai paragraf (lead), angka penting ditebalkan dan digarisbawahi warna model */
+  .ua-lead b {
+    font-weight: 800;
+    color: var(--text);
+    box-shadow: inset 0 -3px 0 var(--series-1);
   }
+
+  /* Menu atas */
+  .ua-nav-bar {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 14px clamp(16px, 4vw, 48px);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .ua-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--text);
+    font-weight: 800;
+    font-size: 17px;
+    letter-spacing: -0.02em;
+  }
+  .ua-nav a[aria-current="page"] {
+    box-shadow: inset 0 -2px 0 var(--text);
+  }
+  .ua-nav {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .ua-nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* Lewati ke konten */
   .ua-skip {
     position: absolute;
     left: -9999px;
@@ -230,16 +279,25 @@
     left: 8px;
     top: 8px;
     z-index: 60;
-    background: var(--surface);
+    background: var(--panel);
     padding: 10px 16px;
     border-radius: var(--radius-md);
   }
+
+  /* Gerak: ilustrasi di tepi layar tidak boleh membuat halaman bisa digeser ke samping */
+  .ua-skyline {
+    overflow: hidden;
+  }
+  .ua-footer {
+    border-top: 1px solid var(--rule);
+  }
 }
 
+/* Alias untuk nama token lama yang masih dipakai di komponen (pustaka kalender, grafik). */
 :root,
 [data-theme="light"] {
   --on-accent: #ffffff;
 }
 [data-theme="dark"] {
-  --on-accent: #0b0d17;
+  --on-accent: #10141c;
 }

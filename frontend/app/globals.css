@@ -5,40 +5,39 @@
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
-/* Utilitas Tailwind memakai token design system. Nama lama (card, muted, border, ...) tetap ada
-   supaya komponen yang belum dirombak ikut berganti warna. */
+/* Utilitas Tailwind memakai token design system Udara Jakarta. Nama lama (surface, line, ink, accent,
+   card, muted, ...) dipertahankan sebagai alias supaya komponen tidak perlu ditulis ulang satu per satu. */
 @theme inline {
   --color-bg: var(--bg);
-  --color-surface: var(--surface);
-  --color-sunken: var(--surface-sunken);
-  --color-line: var(--border);
-  --color-line-soft: var(--border-soft);
+  --color-surface: var(--panel);
+  --color-sunken: var(--chip);
+  --color-line: var(--rule);
+  --color-line-soft: var(--rule-soft);
   --color-ink: var(--text);
   --color-ink-2: var(--text-secondary);
   --color-ink-3: var(--text-muted);
-  --color-brand: var(--brand);
-  --color-on-brand: var(--on-brand);
-  --color-accent: var(--accent);
+  --color-brand: var(--text);
+  --color-on-brand: var(--bg);
+  --color-accent: var(--series-1);
+  --color-series-1: var(--series-1);
   --color-series-2: var(--series-2);
   --color-track: var(--track);
-  --color-ok-bg: var(--success-bg);
-  --color-ok-fg: var(--success-fg);
-  --color-warn-bg: var(--warning-bg);
-  --color-warn-fg: var(--warning-fg);
+  --color-ok-bg: var(--ispu-baik-bg);
+  --color-ok-fg: var(--ispu-baik-fg);
+  --color-warn: var(--warning);
+  --color-danger: var(--danger);
 
   --color-background: var(--bg);
   --color-foreground: var(--text);
-  --color-card: var(--surface);
+  --color-card: var(--panel);
   --color-card-foreground: var(--text);
-  --color-muted: var(--surface-sunken);
+  --color-muted: var(--chip);
   --color-muted-foreground: var(--text-muted);
-  --color-border: var(--border);
-  --color-primary: var(--brand);
-  --color-primary-foreground: var(--on-brand);
-  --color-ring: var(--accent);
-  --color-destructive: var(--ispu-sangat-tidak-sehat-fg);
-  --color-warning-bg: var(--warning-bg);
-  --color-warning-fg: var(--warning-fg);
+  --color-border: var(--rule);
+  --color-primary: var(--text);
+  --color-primary-foreground: var(--bg);
+  --color-ring: var(--series-1);
+  --color-destructive: var(--danger);
 }
 
 /* Font dari next/font; tokens.css hanya tahu namanya. */
@@ -61,8 +60,9 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline: 2px solid var(--series-1);
+  outline-offset: 3px;
+  border-radius: 4px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -77,15 +77,15 @@ body {
 /* Kalender (react-day-picker): warna mengikuti token tema; tombol navigasi 44px untuk target sentuh.
    Selector `dialog .rdp-root` agar menang atas style.css library yang dimuat belakangan. */
 dialog .rdp-root {
-  --rdp-accent-color: var(--accent);
-  --rdp-accent-background-color: var(--surface-sunken);
+  --rdp-accent-color: var(--series-1);
+  --rdp-accent-background-color: var(--chip);
   --rdp-range_start-color: var(--on-accent);
-  --rdp-range_start-background: var(--accent);
+  --rdp-range_start-background: var(--series-1);
   --rdp-range_end-color: var(--on-accent);
-  --rdp-range_end-background: var(--accent);
+  --rdp-range_end-background: var(--series-1);
   --rdp-range_middle-color: var(--text);
-  --rdp-range_middle-background-color: var(--surface-sunken);
-  --rdp-today-color: var(--accent);
+  --rdp-range_middle-background-color: var(--chip);
+  --rdp-today-color: var(--series-1);
   --rdp-nav-height: 2.75rem;
   --rdp-nav_button-height: 2.75rem;
   --rdp-nav_button-width: 2.75rem;

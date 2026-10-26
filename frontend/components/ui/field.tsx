@@ -2,8 +2,7 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-const control =
-  "min-h-11 w-full rounded-md border border-border bg-card px-3 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none";
+const control = "ua-select w-full";
 
 export function Field({
   label,
@@ -17,10 +16,8 @@ export function Field({
   className?: string;
 }) {
   return (
-    <div className={cn("flex min-w-0 flex-col gap-1", className)}>
-      <label htmlFor={htmlFor} className="text-xs font-semibold text-muted-foreground">
-        {label}
-      </label>
+    <div className={cn("ua-field min-w-0", className)}>
+      <label htmlFor={htmlFor}>{label}</label>
       {children}
     </div>
   );

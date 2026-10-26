@@ -100,7 +100,7 @@ export function DataView() {
         <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-semibold lg:self-end">
           <input
             type="checkbox"
-            className="size-4 accent-[var(--accent)]"
+            className="size-4 accent-[var(--series-1)]"
             checked={Boolean(inconsistent)}
             onChange={(e) =>
               setParams({ inconsistent: e.target.checked ? "1" : undefined, page: undefined })
