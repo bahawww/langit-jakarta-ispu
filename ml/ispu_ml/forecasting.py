@@ -25,7 +25,8 @@ INTERVAL = (0.1, 0.9)
 @dataclass
 class ForecastConfig:
     horizons: tuple[int, ...] = tuple(range(1, 8))
-    n_estimators: int = 300
+    # 150 > 300: holdout MAE PM2.5 13,38 vs 13,74 dan backtest 12,90 vs 13,25 (registry v2 vs v1)
+    n_estimators: int = 150
     learning_rate: float = 0.05
     num_leaves: int = 15
     min_child_samples: int = 20

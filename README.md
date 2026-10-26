@@ -119,16 +119,18 @@ Celah data tetap NaN (tidak diisi). Kategori turunan = ambang ISPU dari max 6 pr
 10–90% = kuantil residual holdout. Validasi: holdout waktu + rolling-origin backtest 5 fold (bukan split acak).
 Baseline: persistence (nilai kemarin) dan seasonal naive (7 hari lalu).
 
-Hasil champion v1 (holdout 14 Jul – 30 Nov 2025):
+Hasil champion forecast v2 (150 pohon; holdout 14 Jul – 30 Nov 2025):
 
-| Metode | MAE PM2.5 rata-rata | Akurasi kategori rata-rata |
-|---|---|---|
-| LightGBM | 13,74 | 82,5% |
-| Persistence | 13,93 | 77,2% |
-| Seasonal naive | 15,29 | 74,7% |
+| Metode | MAE PM2.5 rata-rata (holdout) | MAE backtest | Akurasi kategori rata-rata |
+|---|---|---|---|
+| LightGBM v2 (150 pohon) | 13,38 | 12,90 | 82,4% |
+| LightGBM v1 (300 pohon) | 13,74 | 13,25 | 82,5% |
+| Persistence | 13,93 | 13,93 | 77,2% |
+| Seasonal naive | 15,29 | 15,29 | 74,7% |
 
-LightGBM unggul rata-rata, tetapi pada H+5–H+7 MAE PM2.5-nya sedikit di atas salah satu baseline;
-halaman Evaluasi menampilkan ini apa adanya. Forecast dihitung dari **tanggal data terakhir**
+v2 dipromosikan otomatis oleh champion/challenger dan mengalahkan kedua baseline di setiap horizon
+H+1..H+7 (v1 masih kalah tipis di H+5–H+7). Catatan: 150 pohon dipilih dari holdout yang sama, jadi
+angka holdout v2 sedikit optimistis; backtest 5 fold memberi gambaran yang lebih jujur. Forecast dihitung dari **tanggal data terakhir**
 (saat ini 30 Nov 2025), bukan dari hari ini, sampai ada data baru.
 
 **Baseline Orange** (626 data uji, dihitung ulang dari database): RF 97,60% (611), DT 98,24% (615),
