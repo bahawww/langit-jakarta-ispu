@@ -2,15 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 for (const scheme of ["light", "dark"] as const) {
-  for (const path of [
-    "/",
-    "/tren",
-    "/stasiun",
-    "/prediksi",
-    "/evaluasi",
-    "/data",
-    "/admin/login",
-  ]) {
+  for (const path of ["/", "/tren", "/stasiun", "/evaluasi", "/data", "/admin/login"]) {
     test(`WCAG AA ${scheme} ${path}`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: scheme });
       await page.goto(path);

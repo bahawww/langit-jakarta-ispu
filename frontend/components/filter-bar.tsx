@@ -10,14 +10,16 @@ import { useFilters } from "@/lib/filters";
 export function FilterBar({
   children,
   showDates = true,
+  showYear = false,
 }: {
   children?: React.ReactNode;
   showDates?: boolean;
+  showYear?: boolean;
 }) {
   const { filters, setParam, setParams } = useFilters();
   const meta = useApi<Meta>("/meta");
   const m = meta.data;
-  const active = Boolean(filters.station || filters.start || filters.end);
+  const active = Boolean(filters.station || filters.start || filters.end || filters.year);
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-end">
       <Field label="Stasiun" htmlFor="f-station" className="lg:w-64">
@@ -35,6 +37,23 @@ export function FilterBar({
           ))}
         </Select>
       </Field>
+      {showYear ? (
+        <Field label="Tahun" htmlFor="f-year" className="lg:w-40">
+          <Select
+            id="f-year"
+            value={filters.year ?? ""}
+            onChange={(e) => setParam("year", e.target.value || undefined)}
+            disabled={!m}
+          >
+            <option value="">Semua tahun</option>
+            {m?.years.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </Select>
+        </Field>
+      ) : null}
       {showDates ? (
         <div className="flex min-w-0 flex-col gap-1 lg:w-72">
           <span id="f-date-label" className="text-xs font-medium text-muted-foreground">
@@ -55,7 +74,9 @@ export function FilterBar({
       {active ? (
         <Button
           variant="ghost"
-          onClick={() => setParams({ station: undefined, start: undefined, end: undefined })}
+          onClick={() =>
+            setParams({ station: undefined, start: undefined, end: undefined, year: undefined })
+          }
         >
           Reset filter
         </Button>

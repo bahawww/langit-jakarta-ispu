@@ -16,7 +16,7 @@ const jakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: { default: "Udara Jakarta", template: "%s · Udara Jakarta" },
   description:
-    "Monitoring dan prediksi kualitas udara (ISPU) dari 5 stasiun SPKU DKI Jakarta. Sumber data: DLH DKI Jakarta via Satu Data Jakarta.",
+    "Monitoring kualitas udara (ISPU) dan hasil pelatihan model klasifikasi dari 5 stasiun SPKU DKI Jakarta. Sumber data: DLH DKI Jakarta via Satu Data Jakarta.",
 };
 
 export const viewport: Viewport = {

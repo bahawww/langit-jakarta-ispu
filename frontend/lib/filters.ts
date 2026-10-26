@@ -4,7 +4,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 
 /** Filter global disimpan di URL (bisa dibagikan / deep link): ?station=DKI1&start=..&end=.. */
-export type Filters = { station?: string; start?: string; end?: string };
+export type Filters = { station?: string; start?: string; end?: string; year?: string };
 
 export function useFilters() {
   const sp = useSearchParams();
@@ -16,6 +16,7 @@ export function useFilters() {
       station: sp.get("station") ?? undefined,
       start: sp.get("start") ?? undefined,
       end: sp.get("end") ?? undefined,
+      year: sp.get("year") ?? undefined,
     }),
     [sp],
   );

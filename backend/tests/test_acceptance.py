@@ -53,6 +53,23 @@ def test_orange_baseline_reproduced(seeded_client):
     assert [models[n]["correct_vs_ispu"] for n in EXPECTED] == [612, 618, 574]
 
 
+def test_orange_rows_follow_filters(seeded_client):
+    rows = seeded_client.get("/api/baseline/orange/rows").json()
+    assert len(rows) == 626
+    assert sum(r["pred_random_forest"] == r["kategori"] for r in rows) == 611
+    assert [r["tanggal"] for r in rows] == sorted(r["tanggal"] for r in rows)
+
+    sub = seeded_client.get("/api/baseline/orange/rows", params={"station": "DKI5", "year": 2025})
+    sub_rows = sub.json()
+    assert sub_rows and all(
+        r["station_code"] == "DKI5" and r["tanggal"].startswith("2025") for r in sub_rows
+    )
+    summary = seeded_client.get(
+        "/api/baseline/orange", params={"station": "DKI5", "year": 2025}
+    ).json()
+    assert summary["rows"] == len(sub_rows)
+
+
 def test_measurements_paging_sort_search(seeded_client):
     page = seeded_client.get(
         "/api/measurements",

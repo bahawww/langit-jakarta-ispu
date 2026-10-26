@@ -1,177 +1,280 @@
 "use client";
 
-import { ConclusionCard, type Insight } from "@/components/conclusion-card";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useMemo, useState } from "react";
+
+import { ChartLegend, EChart, timeAxisLabel, useChartColors } from "@/components/chart";
 import { FilterBar } from "@/components/filter-bar";
-import { DistributionBar, IspuBadge, IspuScaleCard } from "@/components/ispu";
+import { IspuBadge } from "@/components/ispu";
 import { PageHeader } from "@/components/page-header";
 import { MetricCard } from "@/components/stat-card";
-import { ErrorState, QueryView } from "@/components/states";
+import { ChartSkeleton, ErrorState, QueryView } from "@/components/states";
+import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Field, Select } from "@/components/ui/field";
+import { ScrollX } from "@/components/ui/scroll-x";
+import { SegmentedControl } from "@/components/ui/segmented";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  useApi,
-  type ForecastOut,
-  type Measurement,
-  type ModelVersion,
-  type OrangeBaseline,
-  type StationStats,
-  type Summary,
-} from "@/lib/api";
+import { useApi, type OrangeBaseline, type OrangeRow } from "@/lib/api";
 import { useFilters } from "@/lib/filters";
 import { fmt } from "@/lib/format";
-import { isUnhealthy } from "@/lib/kategori";
-import { kritisLabel, modelLabel, shortStation } from "@/lib/labels";
+import { AMBANG, KATEGORI, KATEGORI_META, isUnhealthy } from "@/lib/kategori";
+import { shortStation } from "@/lib/labels";
 
-const ORANGE_MODELS: Record<string, string> = {
-  rf: "Random Forest",
-  dt: "Decision Tree",
-  knn: "kNN",
-};
+/** Tiga model dasar (bawaan sklearn/Orange, tanpa tuning). Kunci = parameter URL `model`. */
+const MODELS = {
+  rf: { label: "Random Forest", pred: (r: OrangeRow) => r.pred_random_forest },
+  dt: { label: "Decision Tree", pred: (r: OrangeRow) => r.pred_decision_tree },
+  knn: { label: "kNN (k=5)", pred: (r: OrangeRow) => r.pred_knn },
+} as const;
+type ModelKey = keyof typeof MODELS;
+const isModelKey = (v: string | null): v is ModelKey => v != null && v in MODELS;
 
-const unhealthyCount = (by: Record<string, number>) =>
-  Object.entries(by)
-    .filter(([k]) => isUnhealthy(k))
-    .reduce((a, [, n]) => a + n, 0);
+const PAGE_SIZE = 20;
+const avg2 = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-/** Pencemar yang paling sering menjadi penyebab utama kategori harian, dari data stasiun terfilter. */
-function topCritical(stations: StationStats[]) {
-  const total: Record<string, number> = {};
-  for (const s of stations)
-    for (const [k, n] of Object.entries(s.kritis)) total[k] = (total[k] ?? 0) + n;
-  const sorted = Object.entries(total).sort((a, b) => b[1] - a[1]);
-  const sum = sorted.reduce((a, [, n]) => a + n, 0);
-  const top = sorted[0];
-  return top && sum ? { code: top[0], share: top[1] / sum } : null;
+type Point = { key: string; pm25: number; pm10: number };
+
+/** Rata-rata PM2.5 / PM10 per hari atau per bulan; beberapa stasiun di tanggal yang sama dirata-rata. */
+function aggregate(rows: OrangeRow[], by: "day" | "month"): Point[] {
+  const acc = new Map<string, { s25: number; s10: number; n: number }>();
+  for (const r of rows) {
+    const key = by === "day" ? r.tanggal : `${r.tanggal.slice(0, 7)}-01`;
+    const a = acc.get(key) ?? { s25: 0, s10: 0, n: 0 };
+    a.s25 += r.pm_duakomalima;
+    a.s10 += r.pm_sepuluh;
+    a.n += 1;
+    acc.set(key, a);
+  }
+  return [...acc.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, a]) => ({ key, pm25: a.s25 / a.n, pm10: a.s10 / a.n }));
 }
 
-function forecastInsight(f: ForecastOut): Insight {
-  if (!f.items.length) {
-    return {
-      big: "Belum ada",
-      text: "forecast untuk 7 hari ke depan. Model forecast belum dilatih.",
-    };
-  }
-  const alerted = new Set(f.items.filter((i) => i.alert).map((i) => i.station_code));
-  const dates = f.items.map((i) => i.target_date).sort();
-  const span = `${fmt.date(dates[0])} – ${fmt.date(dates.at(-1))}`;
-  return alerted.size === 0
-    ? {
-        big: "Tidak ada",
-        text: `stasiun diprediksi Tidak Sehat pada ${span}. Prediksi dihitung dari data terakhir.`,
-      }
-    : {
-        big: `${alerted.size} stasiun`,
-        text: `diprediksi Tidak Sehat pada ${span}. Rinciannya ada di halaman Prediksi.`,
-      };
-}
-
-function ModelAccuracy({ model }: { model: string }) {
-  const { filters } = useFilters();
-  const champions = useApi<Record<string, ModelVersion | null>>("/models/champions");
-  const orange = useApi<OrangeBaseline>("/baseline/orange", filters, model !== "champion");
-  const help = "Porsi tebakan kategori yang tepat pada hari uji.";
-
-  if (model === "champion") {
-    const c = champions.data?.classification;
-    const m = c?.metrics as
-      { holdout: Record<string, { accuracy: number }>; n_holdout: number } | undefined;
-    return (
-      <MetricCard
-        label="Ketepatan model aktif"
-        help={help}
-        loading={champions.isPending}
-        value={c && m ? fmt.pct(m.holdout[c.algorithm]?.accuracy) : "Belum ada"}
-        note={
-          c && m
-            ? `${modelLabel(c.algorithm)} v${c.version} · ${fmt.int(m.n_holdout)} hari uji terakhir (tidak ikut filter)`
-            : undefined
-        }
-      />
-    );
-  }
-  const row = orange.data?.models.find((x) => x.model === ORANGE_MODELS[model]);
+function TimeSeries({ points, unit }: { points: Point[]; unit: string }) {
+  const c = useChartColors();
+  const option = useMemo(
+    () => ({
+      grid: { left: 44, right: 16, top: 16, bottom: 72 },
+      tooltip: { trigger: "axis", valueFormatter: (v: number) => fmt.num(v) },
+      xAxis: {
+        type: "time",
+        axisLabel: { color: c.muted, fontSize: 11, hideOverlap: true, formatter: timeAxisLabel },
+        axisLine: { lineStyle: { color: c.axis } },
+      },
+      yAxis: {
+        type: "value",
+        name: "Indeks ISPU",
+        nameTextStyle: { color: c.muted, fontSize: 11 },
+        axisLabel: { color: c.muted, fontSize: 11 },
+        splitLine: { lineStyle: { color: c.grid } },
+      },
+      dataZoom: [
+        { type: "inside" },
+        {
+          type: "slider",
+          bottom: 12,
+          height: 24,
+          borderColor: c.border,
+          backgroundColor: c.sunken,
+          fillerColor: `${c.accent}22`,
+          handleStyle: { color: c.accent, borderColor: c.accent },
+          dataBackground: { lineStyle: { color: c.axis }, areaStyle: { color: c.track } },
+          textStyle: { color: c.muted },
+        },
+      ],
+      series: [
+        {
+          name: "PM2.5",
+          type: "line",
+          showSymbol: points.length < 40,
+          symbolSize: 6,
+          lineStyle: { width: 2.5, color: c.accent, cap: "round", join: "round" },
+          itemStyle: { color: c.accent },
+          data: points.map((p) => [p.key, p.pm25]),
+          markLine: {
+            symbol: "none",
+            silent: true,
+            lineStyle: { type: "dashed", color: c.axis },
+            label: {
+              formatter: "{b}",
+              color: c.muted,
+              fontSize: 11,
+              position: "insideStartTop",
+              backgroundColor: c.surface,
+              padding: [1, 4],
+            },
+            data: AMBANG.map((a) => ({ name: a.label, yAxis: a.value })),
+          },
+        },
+        {
+          name: "PM10",
+          type: "line",
+          showSymbol: points.length < 40,
+          symbolSize: 6,
+          lineStyle: { width: 1.5, color: c.series2, cap: "round", join: "round" },
+          itemStyle: { color: c.series2 },
+          data: points.map((p) => [p.key, p.pm10]),
+        },
+      ],
+    }),
+    [points, c],
+  );
   return (
-    <MetricCard
-      label={`Ketepatan ${ORANGE_MODELS[model]} (Orange)`}
-      help={help}
-      loading={orange.isPending}
-      value={orange.data?.rows ? fmt.pct(row?.accuracy) : "Tidak ada data uji"}
-      note={
-        orange.data
-          ? `${fmt.int(row?.correct)} dari ${fmt.int(orange.data.rows)} data uji`
-          : undefined
-      }
+    <EChart
+      option={option}
+      height={360}
+      label={`Grafik garis rata-rata PM2.5 dan PM10 ${unit} pada data uji, dengan garis batas Baik (50) dan Sedang (100)`}
     />
   );
 }
 
+type StationCounts = { code: string; name: string; counts: Record<string, number> };
+
+function countByStation(rows: OrangeRow[], pred: (r: OrangeRow) => string): StationCounts[] {
+  const by = new Map<string, StationCounts>();
+  for (const r of rows) {
+    const s = by.get(r.station_code) ?? {
+      code: r.station_code,
+      name: shortStation(r.station_name),
+      counts: {},
+    };
+    const p = pred(r);
+    s.counts[p] = (s.counts[p] ?? 0) + 1;
+    by.set(r.station_code, s);
+  }
+  return [...by.values()].sort((a, b) => a.code.localeCompare(b.code));
+}
+
+function GroupedBars({ stations, modelLabel }: { stations: StationCounts[]; modelLabel: string }) {
+  const c = useChartColors();
+  const cats = KATEGORI.filter((k) => stations.some((s) => s.counts[k]));
+  const option = useMemo(
+    () => ({
+      grid: { left: 44, right: 16, top: 24, bottom: 32 },
+      tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+      xAxis: {
+        type: "category",
+        data: stations.map((s) => s.name),
+        axisLabel: { color: c.muted, fontSize: 11, interval: 0 },
+        axisLine: { lineStyle: { color: c.axis } },
+      },
+      yAxis: {
+        type: "value",
+        name: "Jumlah hari uji",
+        nameTextStyle: { color: c.muted, fontSize: 11 },
+        axisLabel: { color: c.muted, fontSize: 11 },
+        splitLine: { lineStyle: { color: c.grid } },
+      },
+      series: cats.map((k) => ({
+        name: KATEGORI_META[k].label,
+        type: "bar",
+        barMaxWidth: 28,
+        itemStyle: { color: c.ispu[k], borderRadius: [4, 4, 0, 0] },
+        label: {
+          show: true,
+          position: "top",
+          color: c.muted,
+          fontSize: 11,
+          formatter: (p: { value: number }) => (p.value ? String(p.value) : ""),
+        },
+        data: stations.map((s) => s.counts[k] ?? 0),
+      })),
+    }),
+    [stations, cats, c],
+  );
+  return (
+    <>
+      <ChartLegend
+        items={cats.map((k) => ({ label: KATEGORI_META[k].label, color: c.ispu[k], kind: "dot" }))}
+      />
+      <EChart
+        option={option}
+        height={320}
+        label={`Grafik batang terkelompok: jumlah hari uji per stasiun menurut kategori prediksi ${modelLabel}`}
+      />
+    </>
+  );
+}
+
+const monthLabel = (key: string) => fmt.monthYear(key);
+
 export function OverviewView() {
   const { filters, searchParams, setParam } = useFilters();
-  const model = searchParams.get("model") ?? "champion";
-  const summary = useApi<Summary>("/stats/summary", filters);
-  const stations = useApi<StationStats[]>("/stats/stations", filters);
-  const latest = useApi<Measurement[]>("/stats/latest", { station: filters.station });
-  const forecast = useApi<ForecastOut>("/forecast", { station: filters.station });
-  const champions = useApi<Record<string, ModelVersion | null>>("/models/champions");
-  const s = summary.data;
+  const modelParam = searchParams.get("model");
+  const model: ModelKey = isModelKey(modelParam) ? modelParam : "rf";
+  const [grain, setGrain] = useState<"day" | "month">("day");
+  const [status, setStatus] = useState<"all" | "wrong">("all");
+  const [page, setPage] = useState(1);
 
-  const unhealthy = s ? unhealthyCount(s.by_kategori) : 0;
-  const critical = stations.data ? topCritical(stations.data) : null;
-  const insights: Insight[] | null =
-    s && stations.data && forecast.data
-      ? [
-          {
-            big: fmt.pct(s.pct_tidak_sehat),
-            text: `hari berkategori Tidak Sehat atau lebih buruk (${fmt.int(unhealthy)} dari ${fmt.int(s.rows)} hari-stasiun).`,
-          },
-          critical
-            ? {
-                big: kritisLabel(critical.code),
-                text: `pencemar yang paling sering menjadi penyebab utama kategori harian (${fmt.pct(critical.share)} dari hari).`,
-              }
-            : { big: "–", text: "belum ada data pencemar kritis untuk filter ini." },
-          forecastInsight(forecast.data),
-        ]
-      : null;
-  const fc = champions.data?.forecast;
+  const summary = useApi<OrangeBaseline>("/baseline/orange", filters);
+  const rowsQ = useApi<OrangeRow[]>("/baseline/orange/rows", filters);
+  const rows = useMemo(() => rowsQ.data ?? [], [rowsQ.data]);
+  const pred = MODELS[model].pred;
+
+  const points = useMemo(() => aggregate(rows, grain), [rows, grain]);
+  const peakMonths = useMemo(
+    () =>
+      aggregate(rows, "month")
+        .sort((a, b) => b.pm25 - a.pm25)
+        .slice(0, 3),
+    [rows],
+  );
+  const stations = useMemo(() => countByStation(rows, pred), [rows, pred]);
+  const worst = useMemo(
+    () =>
+      stations
+        .map((s) => ({
+          name: s.name,
+          n: Object.entries(s.counts)
+            .filter(([k]) => isUnhealthy(k))
+            .reduce((a, [, v]) => a + v, 0),
+        }))
+        .filter((s) => s.n > 0)
+        .sort((a, b) => b.n - a.n)
+        .slice(0, 2),
+    [stations],
+  );
+
+  const shown = useMemo(
+    () => (status === "wrong" ? rows.filter((r) => pred(r) !== r.kategori) : rows),
+    [rows, status, pred],
+  );
+  const pages = Math.max(1, Math.ceil(shown.length / PAGE_SIZE));
+  const current = Math.min(page, pages);
+  const slice = shown.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+
+  const s = summary.data;
+  const best = s?.models.length
+    ? s.models.reduce((a, b) => (b.accuracy > a.accuracy ? b : a))
+    : null;
+  const empty = s ? s.rows === 0 : false;
 
   return (
     <>
       <PageHeader
-        title="Ringkasan kualitas udara"
-        description="Kondisi harian dari stasiun pemantau, dan prediksi 7 hari ke depan dari model machine learning."
+        title="Hasil pelatihan model"
+        description="Hasil uji tiga model klasifikasi dasar (Decision Tree, Random Forest, dan kNN dengan k=5) pada data uji yang dipisahkan dari data latih."
+        meta={null}
       />
-      <FilterBar>
-        <Field label="Model" htmlFor="f-model" className="lg:w-56">
+      <FilterBar showDates={false} showYear>
+        <Field label="Model untuk grafik dan tabel" htmlFor="f-model" className="lg:w-56">
           <Select
             id="f-model"
             value={model}
-            onChange={(e) =>
-              setParam("model", e.target.value === "champion" ? undefined : e.target.value)
-            }
+            onChange={(e) => {
+              setParam("model", e.target.value === "rf" ? undefined : e.target.value);
+              setPage(1);
+            }}
           >
-            <option value="champion">Model aktif (champion)</option>
-            {Object.entries(ORANGE_MODELS).map(([k, v]) => (
+            {Object.entries(MODELS).map(([k, v]) => (
               <option key={k} value={k}>
-                {v} (baseline Orange)
+                {v.label}
               </option>
             ))}
           </Select>
         </Field>
       </FilterBar>
-
-      <div className="flex flex-wrap gap-4">
-        <div className="min-w-0 flex-[999_1_520px] [&>*]:h-full">
-          <ConclusionCard
-            insights={insights}
-            chip={fc ? `Model forecast: ${modelLabel(fc.algorithm)} v${fc.version}` : undefined}
-          />
-        </div>
-        <div className="min-w-0 flex-[1_1_320px] [&>*]:h-full">
-          <IspuScaleCard />
-        </div>
-      </div>
 
       {summary.error ? (
         <ErrorState error={summary.error} onRetry={() => summary.refetch()} />
@@ -181,97 +284,221 @@ export function OverviewView() {
           className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))] gap-4"
         >
           <MetricCard
-            label="Rata-rata PM2.5"
-            help="Indeks harian partikel halus. Di atas 50 berarti lewat batas Baik."
+            label="Total sampel uji"
+            help="Jumlah hari-stasiun pada data uji yang sesuai filter."
             loading={summary.isPending}
-            value={fmt.num(s?.avg_pm_duakomalima)}
+            value={`${fmt.int(s?.rows)} hari`}
+            note="Satu sampel = satu stasiun pada satu hari"
+          />
+          <MetricCard
+            label="Rata-rata PM2.5"
+            help="Indeks harian partikel halus pada data uji. Di atas 50 berarti lewat batas Baik."
+            loading={summary.isPending}
+            value={s?.avg_pm_duakomalima == null ? "–" : avg2.format(s.avg_pm_duakomalima)}
           />
           <MetricCard
             label="Rata-rata PM10"
-            help="Indeks harian partikel kasar. Satuannya indeks, bukan µg/m³."
+            help="Indeks harian partikel kasar pada data uji. Satuannya indeks, bukan µg/m³."
             loading={summary.isPending}
-            value={fmt.num(s?.avg_pm_sepuluh)}
+            value={s?.avg_pm_sepuluh == null ? "–" : avg2.format(s.avg_pm_sepuluh)}
           />
           <MetricCard
-            label="Hari Tidak Sehat atau lebih buruk"
-            help="Hari-stasiun dengan indeks di atas 100."
+            label="Akurasi model terbaik"
+            help="Porsi tebakan kategori yang tepat pada data uji."
             loading={summary.isPending}
-            value={fmt.int(unhealthy)}
+            value={empty || !best ? "Tidak ada data" : fmt.pct(best.accuracy)}
             note={
-              s
-                ? `${fmt.pct(s.pct_tidak_sehat)} dari semua hari · ${fmt.int(s.label_inconsistent)} baris berlabel tidak konsisten`
+              s && best && !empty
+                ? `${best.model}: ${fmt.int(best.correct)} dari ${fmt.int(s.rows)} tepat. ${s.models
+                    .filter((m) => m !== best)
+                    .map((m) => `${m.model} ${fmt.pct(m.accuracy)}`)
+                    .join(", ")}`
                 : undefined
             }
           />
-          <ModelAccuracy model={model} />
         </section>
       )}
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr] lg:items-start">
-        <Card aria-labelledby="h-terkini">
-          <CardHeader
-            id="h-terkini"
-            title="Kondisi terkini per stasiun"
-            description="Pengukuran terakhir yang tersedia di database untuk tiap stasiun."
-          />
-          <CardBody>
-            <QueryView
-              query={latest}
-              skeleton={<Skeleton className="h-40 w-full" />}
-              isEmpty={(d) => d.length === 0}
-            >
-              {(rows) => (
-                <ul className="m-0 grid list-none grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-3 p-0">
-                  {rows.map((r) => (
-                    <li
-                      key={r.station_code}
-                      className="flex flex-col gap-3 rounded-md border border-line p-3.5"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="m-0 text-sm font-bold">{shortStation(r.station_name)}</p>
-                          <p className="m-0 text-xs text-ink-3">
-                            {r.station_code} · {fmt.date(r.tanggal)}
-                          </p>
-                        </div>
-                        <IspuBadge value={r.kategori} />
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="ua-t-display" style={{ fontSize: 32, lineHeight: "36px" }}>
-                          {fmt.int(r.max)}
-                        </span>
-                        <span className="flex flex-col text-[13px] leading-5 text-ink-3">
-                          <span>indeks tertinggi</span>
-                          {r.parameter_pencemar_kritis ? (
-                            <span>penyebab {kritisLabel(r.parameter_pencemar_kritis)}</span>
-                          ) : null}
-                        </span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </QueryView>
-          </CardBody>
-        </Card>
+      <Card aria-labelledby="h-waktu">
+        <CardHeader
+          id="h-waktu"
+          title="PM2.5 dan PM10 sepanjang waktu"
+          description="Rata-rata indeks pada data uji. Garis putus-putus menandai batas Baik (50) dan Sedang (100)."
+          action={
+            <SegmentedControl
+              label="Rentang waktu"
+              value={grain}
+              onChange={setGrain}
+              options={[
+                { value: "day", label: "Harian" },
+                { value: "month", label: "Bulanan" },
+              ]}
+            />
+          }
+        />
+        <CardBody>
+          <QueryView
+            query={rowsQ}
+            skeleton={<ChartSkeleton height={360} />}
+            isEmpty={(d) => d.length === 0}
+          >
+            {() => (
+              <>
+                <ChartLegend
+                  items={[
+                    { label: "PM2.5", color: "var(--accent)" },
+                    { label: "PM10", color: "var(--series-2)" },
+                  ]}
+                />
+                <TimeSeries points={points} unit={grain === "day" ? "harian" : "bulanan"} />
+                <p className="m-0 text-sm text-ink-3">
+                  Rata-rata PM2.5 bulanan tertinggi:{" "}
+                  {peakMonths.map((p) => `${monthLabel(p.key)} (${fmt.num(p.pm25)})`).join(", ")}.
+                </p>
+              </>
+            )}
+          </QueryView>
+        </CardBody>
+      </Card>
 
-        <Card aria-labelledby="h-distribusi">
-          <CardHeader
-            id="h-distribusi"
-            title="Komposisi kategori"
-            description="Jumlah hari per kategori (label sumber)."
-          />
-          <CardBody>
-            <QueryView
-              query={summary}
-              skeleton={<Skeleton className="h-24 w-full" />}
-              isEmpty={(d) => d.rows === 0}
+      <Card aria-labelledby="h-stasiun">
+        <CardHeader
+          id="h-stasiun"
+          title={`Kategori prediksi ${MODELS[model].label} per stasiun`}
+          description="Jumlah hari uji menurut kategori yang ditebak model."
+        />
+        <CardBody>
+          <QueryView
+            query={rowsQ}
+            skeleton={<ChartSkeleton height={320} />}
+            isEmpty={(d) => d.length === 0}
+          >
+            {() => (
+              <>
+                <GroupedBars stations={stations} modelLabel={MODELS[model].label} />
+                <p className="m-0 text-sm text-ink-3">
+                  {worst.length
+                    ? `Prediksi Tidak Sehat atau lebih buruk terbanyak: ${worst
+                        .map((w) => `${w.name} (${fmt.int(w.n)} hari)`)
+                        .join(", ")}.`
+                    : "Model tidak memprediksi hari Tidak Sehat pada filter ini."}
+                </p>
+              </>
+            )}
+          </QueryView>
+        </CardBody>
+      </Card>
+
+      <Card aria-labelledby="h-tabel">
+        <CardHeader
+          id="h-tabel"
+          title="Kategori aktual dan prediksi"
+          description={`Perbandingan label sumber dengan tebakan ${MODELS[model].label} untuk tiap hari uji.`}
+          action={
+            <SegmentedControl
+              label="Tampilkan baris"
+              value={status}
+              onChange={(v) => {
+                setStatus(v);
+                setPage(1);
+              }}
+              options={[
+                { value: "all", label: "Semua" },
+                { value: "wrong", label: "Hanya meleset" },
+              ]}
+            />
+          }
+        />
+        <CardBody>
+          <QueryView
+            query={rowsQ}
+            skeleton={<Skeleton className="h-96 w-full" />}
+            isEmpty={() => shown.length === 0}
+            empty={
+              <p className="m-0 py-6 text-center text-sm text-ink-3">
+                Tidak ada baris yang meleset pada filter ini.
+              </p>
+            }
+          >
+            {() => (
+              <ScrollX label="Tabel kategori aktual dan prediksi">
+                <table className="ua-table min-w-[760px]">
+                  <caption className="sr-only">
+                    Data uji dengan prediksi {MODELS[model].label}, halaman {current} dari {pages}
+                  </caption>
+                  <thead>
+                    <tr>
+                      <th scope="col" className="ua-left">
+                        Tanggal
+                      </th>
+                      <th scope="col" className="ua-left">
+                        Stasiun
+                      </th>
+                      <th scope="col">PM2.5</th>
+                      <th scope="col" className="ua-left">
+                        Kategori aktual
+                      </th>
+                      <th scope="col" className="ua-left">
+                        Prediksi
+                      </th>
+                      <th scope="col" className="ua-left">
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {slice.map((r) => {
+                      const p = pred(r);
+                      const ok = p === r.kategori;
+                      return (
+                        <tr key={`${r.tanggal}-${r.station_code}`}>
+                          <td className="ua-left whitespace-nowrap">{fmt.date(r.tanggal)}</td>
+                          <td className="ua-left">{r.station_name}</td>
+                          <td>{r.pm_duakomalima}</td>
+                          <td className="ua-left">
+                            <IspuBadge value={r.kategori} />
+                          </td>
+                          <td className="ua-left">
+                            <IspuBadge value={p} />
+                          </td>
+                          <td className="ua-left">
+                            <span
+                              className={`ua-badge ${ok ? "ua-badge--success" : "ua-badge--warning"}`}
+                            >
+                              {ok ? "Tepat (Benar)" : "Meleset (Salah)"}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </ScrollX>
+            )}
+          </QueryView>
+          <nav aria-label="Paginasi" className="flex flex-wrap items-center justify-between gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={current <= 1}
+              onClick={() => setPage(current - 1)}
             >
-              {(d) => <DistributionBar counts={d.by_kategori} />}
-            </QueryView>
-          </CardBody>
-        </Card>
-      </div>
+              <ChevronLeft aria-hidden className="size-4" /> Sebelumnya
+            </Button>
+            <span className="order-first basis-full text-center text-sm font-semibold sm:order-none sm:basis-auto">
+              Halaman {fmt.int(current)} dari {fmt.int(pages)} · {fmt.int(shown.length)} baris
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={current >= pages}
+              onClick={() => setPage(current + 1)}
+            >
+              Berikutnya <ChevronRight aria-hidden className="size-4" />
+            </Button>
+          </nav>
+        </CardBody>
+      </Card>
     </>
   );
 }

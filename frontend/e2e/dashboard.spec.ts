@@ -3,10 +3,9 @@ import { expect, test } from "@playwright/test";
 import { horizontalOverflow } from "./helpers";
 
 const PAGES = [
-  { path: "/", h1: "Ringkasan kualitas udara" },
+  { path: "/", h1: "Hasil pelatihan model" },
   { path: "/tren", h1: "Tren kualitas udara" },
   { path: "/stasiun", h1: "Perbandingan antar-stasiun" },
-  { path: "/prediksi", h1: "Prediksi 7 hari" },
   { path: "/evaluasi", h1: "Evaluasi model" },
   { path: "/data", h1: "Data pengukuran" },
 ];
@@ -26,51 +25,58 @@ for (const p of PAGES) {
   });
 }
 
-test("ringkasan: kartu metrik dari API dan filter stasiun mengubah angka", async ({
+const id2 = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+test("hasil model: kartu metrik dari API dan filter stasiun/tahun mengubah angka", async ({
   page,
   request,
 }) => {
-  const unhealthy = (s: { by_kategori: Record<string, number> }) =>
-    Object.entries(s.by_kategori)
-      .filter(([k]) => k !== "BAIK" && k !== "SEDANG")
-      .reduce((a, [, n]) => a + n, 0);
-  const summary = await (await request.get("/api/stats/summary")).json();
-  const meta = await (await request.get("/api/meta")).json();
+  const all = await (await request.get("/api/baseline/orange")).json();
   await page.goto("/");
-  // chip meta di header: jumlah seluruh data
-  await expect(page.getByRole("term").filter({ hasText: "Data" })).toBeVisible();
-  await expect(
-    page
-      .getByRole("definition")
-      .filter({ hasText: `${meta.total_rows.toLocaleString("id-ID")} hari-stasiun` }),
-  ).toBeVisible();
+  const card = (name: string) =>
+    page.getByRole("region", { name: "Metrik utama" }).locator(".ua-card", { hasText: name });
+  await expect(card("Total sampel uji")).toContainText(`${all.rows.toLocaleString("id-ID")} hari`);
+  await expect(card("Rata-rata PM2.5")).toContainText(id2.format(all.avg_pm_duakomalima));
+  await expect(card("Rata-rata PM10")).toContainText(id2.format(all.avg_pm_sepuluh));
+  const best = [...all.models].sort((a, b) => b.accuracy - a.accuracy)[0];
+  await expect(card("Akurasi model terbaik")).toContainText(best.model);
 
-  const card = page.locator(".ua-card", { hasText: "Hari Tidak Sehat atau lebih buruk" });
-  await expect(card).toContainText(unhealthy(summary).toLocaleString("id-ID"));
-
+  const meta = await (await request.get("/api/meta")).json();
   const st = meta.stations[0];
-  const one = await (await request.get(`/api/stats/summary?station=${st.code}`)).json();
+  const year = meta.years.at(-1);
+  const sub = await (
+    await request.get(`/api/baseline/orange?station=${st.code}&year=${year}`)
+  ).json();
   await page.getByLabel("Stasiun", { exact: true }).selectOption(st.code);
-  await expect(page).toHaveURL(new RegExp(`station=${st.code}`));
-  await expect(card).toContainText(unhealthy(one).toLocaleString("id-ID"));
+  await page.getByLabel("Tahun", { exact: true }).selectOption(String(year));
+  await expect(page).toHaveURL(new RegExp(`year=${year}`));
+  await expect(card("Total sampel uji")).toContainText(`${sub.rows.toLocaleString("id-ID")} hari`);
+  await expect(card("Rata-rata PM2.5")).toContainText(id2.format(sub.avg_pm_duakomalima));
 });
 
-test("ringkasan: kesimpulan singkat dihitung dari data, bukan teks tetap", async ({
+test("hasil model: tabel aktual vs prediksi, status, dan model yang dipilih", async ({
   page,
   request,
 }) => {
-  const summary = await (await request.get("/api/stats/summary")).json();
+  const rows = await (await request.get("/api/baseline/orange/rows")).json();
+  const wrong = (key: string) =>
+    rows.filter((r: Record<string, string>) => r[key] !== r.kategori).length;
   await page.goto("/");
-  const hero = page.getByRole("region", { name: "Kesimpulan singkat" });
-  const pct = new Intl.NumberFormat("id-ID", {
-    style: "percent",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(summary.pct_tidak_sehat);
-  await expect(hero).toContainText(pct);
-  await expect(page.getByRole("region", { name: "Skala ISPU" })).toContainText(
-    "Sangat Tidak Sehat",
-  );
+  const table = page.getByRole("region", { name: "Tabel kategori aktual dan prediksi" });
+  await expect(table.locator("tbody tr")).toHaveCount(20);
+  await expect(table.getByText("Tepat (Benar)").first()).toBeVisible();
+
+  await page.getByRole("button", { name: "Hanya meleset" }).click();
+  await expect(page.getByText(`${wrong("pred_random_forest")} baris`)).toBeVisible();
+  await expect(table.locator("tbody tr").first()).toContainText("Meleset (Salah)");
+  await expect(table.getByText("Tepat (Benar)")).toHaveCount(0);
+
+  await page.getByLabel("Model untuk grafik dan tabel").selectOption("knn");
+  await expect(page).toHaveURL(/model=knn/);
+  await expect(page.getByText(`${wrong("pred_knn")} baris`)).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /prediksi kNN \(k=5\) per stasiun/ }),
+  ).toBeVisible();
 });
 
 test("tanggal: preset, kalender, batas data, Esc, dan reset", async ({ page, request }) => {
@@ -116,18 +122,6 @@ test("tanggal: preset, kalender, batas data, Esc, dan reset", async ({ page, req
   await dialog.getByRole("button", { name: "Semua data" }).click();
   await expect(page).not.toHaveURL(/start=/);
   await expect(trigger).toContainText("Semua tanggal");
-});
-
-test("prediksi: grid 7 hari per stasiun dengan label kategori", async ({ page, request }) => {
-  const fc = await (await request.get("/api/forecast")).json();
-  test.skip(fc.items.length === 0, "belum ada forecast");
-  await page.goto("/prediksi");
-  await expect(page.getByText("tanggal data terakhir")).toBeVisible();
-  const rows = page.locator("table").first().locator("tbody tr");
-  await expect(rows).toHaveCount(
-    new Set(fc.items.map((i: { station_code: string }) => i.station_code)).size,
-  );
-  await expect(rows.first().locator("td")).toHaveCount(7);
 });
 
 test("data: cari, badge label tidak konsisten, dan ekspor CSV", async ({ page }) => {

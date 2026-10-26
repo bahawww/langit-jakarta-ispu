@@ -50,7 +50,7 @@ type FcPart = {
 };
 type FcMetrics = { holdout: FcPart; backtest: FcPart | null; backtest_folds: unknown[] };
 
-const ORDER = ["decision_tree", "random_forest", "knn", "lightgbm", "rule_baseline"];
+const ORDER = ["decision_tree", "random_forest", "knn", "rule_baseline"];
 const RULE = "rule_baseline";
 const PM25 = "pm_duakomalima";
 

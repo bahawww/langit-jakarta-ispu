@@ -106,6 +106,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/baseline/orange/rows": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Orange Rows
+     * @description Seluruh baris data uji (maks. ~626) dengan prediksi 3 model, untuk grafik dan tabel.
+     */
+    get: operations["orange_rows_api_baseline_orange_rows_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/models": {
     parameters: {
       query?: never;
@@ -645,6 +665,30 @@ export interface components {
       /** Models */
       models: components["schemas"]["ModelEval"][];
     };
+    /** OrangeRowOut */
+    OrangeRowOut: {
+      /**
+       * Tanggal
+       * Format: date
+       */
+      tanggal: string;
+      /** Station Code */
+      station_code: string;
+      /** Station Name */
+      station_name: string;
+      /** Pm Duakomalima */
+      pm_duakomalima: number;
+      /** Pm Sepuluh */
+      pm_sepuluh: number;
+      /** Kategori */
+      kategori: string;
+      /** Pred Random Forest */
+      pred_random_forest: string;
+      /** Pred Decision Tree */
+      pred_decision_tree: string;
+      /** Pred Knn */
+      pred_knn: string;
+    };
     /** PollutantForecast */
     PollutantForecast: {
       /** Yhat */
@@ -1033,6 +1077,41 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["OrangeBaselineOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  orange_rows_api_baseline_orange_rows_get: {
+    parameters: {
+      query?: {
+        /** @description Kode stasiun, mis. DKI1 */
+        station?: string[] | null;
+        start?: string | null;
+        end?: string | null;
+        year?: number | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OrangeRowOut"][];
         };
       };
       /** @description Validation Error */

@@ -11,6 +11,7 @@ export type DailyPoint = Schemas["DailyPoint"];
 export type MonthlyCount = Schemas["MonthlyCount"];
 export type StationStats = Schemas["StationStats"];
 export type OrangeBaseline = Schemas["OrangeBaselineOut"];
+export type OrangeRow = Schemas["OrangeRowOut"];
 export type ModelVersion = Schemas["ModelVersionOut"];
 export type TrainingRun = Schemas["TrainingRunOut"];
 export type ForecastOut = Schemas["ForecastOut"];

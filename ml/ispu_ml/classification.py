@@ -8,7 +8,6 @@ from dataclasses import dataclass, field
 
 import numpy as np
 import pandas as pd
-from lightgbm import LGBMClassifier
 from sklearn.base import BaseEstimator, clone
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
@@ -28,18 +27,8 @@ PRIMARY_METRIC = "macro_f1"  # pada time holdout; lebih besar lebih baik
 def candidates(seed: int) -> dict[str, BaseEstimator]:
     return {
         "decision_tree": DecisionTreeClassifier(random_state=seed),
-        "random_forest": RandomForestClassifier(n_estimators=300, random_state=seed, n_jobs=4),
+        "random_forest": RandomForestClassifier(random_state=seed, n_jobs=4),
         "knn": make_pipeline(StandardScaler(), KNeighborsClassifier(n_neighbors=5)),
-        "lightgbm": LGBMClassifier(
-            n_estimators=300,
-            learning_rate=0.05,
-            num_leaves=15,
-            random_state=seed,
-            deterministic=True,
-            force_col_wise=True,
-            n_jobs=4,
-            verbose=-1,
-        ),
     }
 
 

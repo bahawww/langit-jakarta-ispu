@@ -133,7 +133,7 @@ jadi menyalakannya akan menambah 1 baris SANGAT TIDAK SEHAT (2024-02-14 DKI3) ya
 ## Penjelasan model
 
 **Klasifikasi** (melanjutkan tugas kuliah): kategori dari 6 polutan di hari yang sama. Kandidat:
-Decision Tree, Random Forest, kNN (k=5, distandarkan), LightGBM; pembanding: **aturan ambang ISPU**.
+Decision Tree, Random Forest, kNN (k=5, distandarkan), semuanya model dasar scikit-learn tanpa tuning; pembanding: **aturan ambang ISPU**.
 Evaluasi pada holdout waktu (20% tanggal terakhir) dan split 80:20 stratified (paritas Orange).
 Karena kategori ditentukan langsung dari `max`, aturan ambang hampir selalu benar dan **tidak ada model ML
 yang mengalahkannya**. Ini temuan, bukan kegagalan: nilai ML sebenarnya ada di forecasting.

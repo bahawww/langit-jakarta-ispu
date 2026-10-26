@@ -86,6 +86,18 @@ class OrangeBaselineOut(BaseModel):
     models: list[ModelEval]
 
 
+class OrangeRowOut(BaseModel):
+    tanggal: date
+    station_code: str
+    station_name: str
+    pm_duakomalima: int
+    pm_sepuluh: int
+    kategori: str
+    pred_random_forest: str
+    pred_decision_tree: str
+    pred_knn: str
+
+
 class ModelVersionOut(BaseModel):
     id: int
     task: str

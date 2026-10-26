@@ -11,10 +11,9 @@ import { useApi, type Meta } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/", label: "Ringkasan" },
+  { href: "/", label: "Hasil model" },
   { href: "/tren", label: "Tren" },
   { href: "/stasiun", label: "Per stasiun" },
-  { href: "/prediksi", label: "Prediksi" },
   { href: "/evaluasi", label: "Evaluasi" },
   { href: "/data", label: "Data" },
   { href: "/admin", label: "Admin" },

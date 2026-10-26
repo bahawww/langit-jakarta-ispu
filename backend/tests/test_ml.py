@@ -46,7 +46,7 @@ def cls_result(clean_frame):
 
 def test_classification_trains_all_candidates(cls_result):
     h = cls_result.metrics["holdout"]
-    assert set(h) == {"decision_tree", "random_forest", "knn", "lightgbm", "rule_baseline"}
+    assert set(h) == {"decision_tree", "random_forest", "knn", "rule_baseline"}
     assert cls_result.algorithm in h and cls_result.algorithm != "rule_baseline"
     assert h["rule_baseline"]["vs_ispu"]["accuracy"] == 1.0
     assert cls_result.metrics["n_holdout"] + cls_result.metrics["n_train"] == 3131

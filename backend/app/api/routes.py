@@ -17,6 +17,7 @@ from app.schemas import (
     MetaOut,
     ModelEval,
     OrangeBaselineOut,
+    OrangeRowOut,
     PollutantOut,
     StationOut,
     SummaryOut,
@@ -234,3 +235,27 @@ def orange_baseline(session: SessionDep, filters: FiltersDep) -> OrangeBaselineO
         label_inconsistent=sum(a != b for a, b in zip(y_true, y_ispu, strict=True)),
         models=models,
     )
+
+
+@router.get("/baseline/orange/rows", response_model=list[OrangeRowOut])
+def orange_rows(session: SessionDep, filters: FiltersDep) -> list[OrangeRowOut]:
+    """Seluruh baris data uji (maks. ~626) dengan prediksi 3 model, untuk grafik dan tabel."""
+    stmt = (
+        filters.apply(select(OrangeBaseline), OrangeBaseline)
+        .join(Station)
+        .order_by(OrangeBaseline.tanggal, Station.code)
+    )
+    return [
+        OrangeRowOut(
+            tanggal=r.tanggal,
+            station_code=r.station.code,
+            station_name=r.station.name,
+            pm_duakomalima=r.pm_duakomalima,
+            pm_sepuluh=r.pm_sepuluh,
+            kategori=r.kategori,
+            pred_random_forest=r.pred_random_forest,
+            pred_decision_tree=r.pred_decision_tree,
+            pred_knn=r.pred_knn,
+        )
+        for r in session.scalars(stmt).unique()
+    ]
