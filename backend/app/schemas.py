@@ -146,3 +146,27 @@ class ForecastOut(BaseModel):
     generated_at: datetime | None
     interval: list[float] | None
     items: list[ForecastDay]
+
+
+class DailyPoint(BaseModel):
+    tanggal: date
+    avg: float
+    max: int
+    stations: int
+    kategori_terburuk: str
+
+
+class MonthlyCount(BaseModel):
+    bulan: str
+    counts: dict[str, int]
+
+
+class StationStats(BaseModel):
+    code: str
+    name: str
+    rows: int
+    avg_pm_duakomalima: float
+    avg_pm_sepuluh: float
+    pct_tidak_sehat: float
+    by_kategori: dict[str, int]
+    kritis: dict[str, int]

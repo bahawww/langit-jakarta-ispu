@@ -1,6 +1,6 @@
 # Platform Monitoring & Prediksi Kualitas Udara ISPU DKI Jakarta
 
-Status: **Tahap 3 (ML pipeline)**. README lengkap (arsitektur, deploy, retraining, model) menyusul di Tahap 6.
+Status: **Tahap 4 (frontend dashboard)**. README lengkap (arsitektur, deploy, retraining, model) menyusul di Tahap 6.
 Rencana dan keputusan desain: [`docs/PLAN.md`](docs/PLAN.md).
 
 ## Menjalankan lokal
@@ -33,3 +33,18 @@ Tes memakai database terpisah `ispu_test` di server PostgreSQL yang sama.
 - Rollback: `docker compose -f deploy/compose.yaml exec worker python -m app.cli rollback <model_version_id>`
 - Registry: `GET /api/models`, `/api/models/champions`, `/api/models/{id}`, `/api/training-runs`;
   forecast: `GET /api/forecast?station=DKI1`.
+
+## Frontend
+
+Next.js 16 (App Router, output standalone) + TypeScript + Tailwind 4 + komponen gaya shadcn/ui +
+TanStack Query + ECharts 6. Semua angka dibaca dari `/api` (tidak ada angka data hard-coded); filter
+tersimpan di URL. Tipe API dibuat dari OpenAPI: `npm run gen:api` (butuh stack berjalan).
+
+```sh
+cd frontend && npm ci
+API_PROXY=http://127.0.0.1:8300 npm run dev     # /api diteruskan ke stack lokal
+npm run typecheck && npm run lint && npm run format
+deploy/build.sh web && docker compose -f deploy/compose.yaml up -d --no-build web
+```
+
+Screenshot: [`docs/screenshots/`](docs/screenshots/).

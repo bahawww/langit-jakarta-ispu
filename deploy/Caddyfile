@@ -18,8 +18,7 @@
 	handle /api/* {
 		reverse_proxy api:8000
 	}
-	# Tahap 4: ganti dengan reverse_proxy web:3000
 	handle {
-		respond "Frontend belum tersedia" 503
+		reverse_proxy web:3000
 	}
 }
