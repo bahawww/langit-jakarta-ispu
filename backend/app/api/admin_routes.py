@@ -4,6 +4,7 @@ import logging
 from typing import Annotated
 
 from fastapi import APIRouter, File, HTTPException, Query, Request, Response, UploadFile
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy import select
 
 from app.api.deps import SessionDep
@@ -85,6 +86,21 @@ def me(user: AdminDep) -> MeOut:
     return MeOut(username=user)
 
 
+def _ingest_and_enqueue(data: bytes, name: str, user: str) -> UploadOut:
+    with session_factory()() as s:
+        try:
+            u = ingest_csv(s, data, name[:255], source="admin")
+        except UnicodeDecodeError:
+            raise HTTPException(400, "File harus berkodean UTF-8") from None
+        queued = None
+        if u.status == "success" and (u.inserted or u.updated):
+            queued = _enqueue("ingest", u.id) is not None
+        log.info("upload admin", extra={"user": user, "upload_id": u.id, "status": u.status})
+        return UploadOut.model_validate(u, from_attributes=True).model_copy(
+            update={"retrain_queued": queued}
+        )
+
+
 @router.post("/admin/uploads", response_model=UploadOut, status_code=201)
 async def upload_csv(
     user: AdminDep, file: Annotated[UploadFile, File(description="CSV mentah atau bersih")]
@@ -101,18 +117,9 @@ async def upload_csv(
     if not data.strip():
         raise HTTPException(400, "File kosong")
 
-    with session_factory()() as s:
-        try:
-            u = ingest_csv(s, data, name[:255], source="admin")
-        except UnicodeDecodeError:
-            raise HTTPException(400, "File harus berkodean UTF-8") from None
-        queued = None
-        if u.status == "success" and (u.inserted or u.updated):
-            queued = _enqueue("ingest", u.id) is not None
-        log.info("upload admin", extra={"user": user, "upload_id": u.id, "status": u.status})
-        return UploadOut.model_validate(u, from_attributes=True).model_copy(
-            update={"retrain_queued": queued}
-        )
+    # Ingest memakai DB secara sinkron: jalankan di threadpool. Di event loop ia menahan
+    # pengiriman respons permintaan lain, koneksi pool tidak kembali, dan semua menunggu timeout.
+    return await run_in_threadpool(_ingest_and_enqueue, data, name, user)
 
 
 @router.get("/admin/uploads", response_model=list[UploadOut])

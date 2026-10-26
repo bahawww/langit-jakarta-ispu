@@ -9,7 +9,14 @@ from app.config import get_settings
 
 @lru_cache
 def get_engine() -> Engine:
-    return create_engine(get_settings().database_url, pool_pre_ping=True)
+    # Pool lebih longgar dari bawaan (5+10) dan gagal cepat (10 dtk, bukan 30) bila habis.
+    return create_engine(
+        get_settings().database_url,
+        pool_pre_ping=True,
+        pool_size=10,
+        max_overflow=10,
+        pool_timeout=10,
+    )
 
 
 def session_factory() -> sessionmaker[Session]:

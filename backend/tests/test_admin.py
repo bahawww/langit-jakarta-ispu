@@ -1,5 +1,7 @@
 """Auth admin + upload/retrain/rollback lewat API."""
 
+import asyncio
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -110,3 +112,22 @@ def test_check_config_requires_secrets(monkeypatch):
     monkeypatch.setattr(get_settings(), "admin_password", "")
     with pytest.raises(RuntimeError, match="ADMIN_PASSWORD"):
         auth.check_config()
+
+
+def test_upload_ingest_runs_off_the_event_loop(admin, queued, monkeypatch):
+    """Regresi: ingest sinkron di event loop membuat pool koneksi habis saat ada beban paralel."""
+    seen: dict[str, bool] = {}
+    real = admin_routes.ingest_csv
+
+    def spy(*args, **kwargs):
+        try:
+            asyncio.get_running_loop()
+            seen["on_loop"] = True
+        except RuntimeError:
+            seen["on_loop"] = False
+        return real(*args, **kwargs)
+
+    monkeypatch.setattr(admin_routes, "ingest_csv", spy)
+    r = admin.post("/api/admin/uploads", files={"file": ("x.csv", b"foo,bar\n1,2\n", "text/csv")})
+    assert r.status_code == 201
+    assert seen == {"on_loop": False}
