@@ -1,0 +1,75 @@
+name: ispu
+
+x-seed-files: &seed-files
+  # CSV asli di root repo dipasang read-only; aplikasi tidak pernah menulis ke file ini.
+  - type: bind
+    source: ../Dataset_ISPU_DKI_Jakarta_2024_2025_Clean.csv
+    target: /seed/clean.csv
+    read_only: true
+  - type: bind
+    source: ../Hasil_Testing_80_20_ISPU_DKI_Jakarta.csv
+    target: /seed/orange_test.csv
+    read_only: true
+  - type: bind
+    source: "../Filedata Data Indeks Standar Pencemar Udara ISPU di Provinsi DKI Jakarta.csv"
+    target: /seed/raw.csv
+    read_only: true
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ispu}
+      POSTGRES_USER: ${POSTGRES_USER:-ispu}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?isi POSTGRES_PASSWORD di deploy/.env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    # Di VPS ini build lewat deploy/build.sh (--network host): bridge BuildKit ~60 KB/s ke PyPI.
+    image: ispu-backend:latest
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-ispu}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ispu}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes: *seed-files
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      # Hanya localhost: akses publik lewat cloudflared (VPS di balik NAT).
+      - "127.0.0.1:${HTTP_PORT:-8300}:8300"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8300/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+  caddy_data:

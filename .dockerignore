@@ -1,0 +1,6 @@
+*
+!backend/
+!ml/
+backend/**/__pycache__
+backend/.pytest_cache
+backend/.ruff_cache

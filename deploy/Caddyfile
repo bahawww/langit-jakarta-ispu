@@ -1,0 +1,25 @@
+{
+	auto_https off
+	admin off
+}
+
+:8300 {
+	encode zstd gzip
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		X-Frame-Options DENY
+		-Server
+	}
+	request_body {
+		max_size 6MB
+	}
+
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+	# Tahap 4: ganti dengan reverse_proxy web:3000
+	handle {
+		respond "Frontend belum tersedia" 503
+	}
+}
