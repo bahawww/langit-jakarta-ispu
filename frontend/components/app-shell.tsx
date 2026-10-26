@@ -16,6 +16,7 @@ const NAV = [
   { href: "/prediksi", label: "Prediksi" },
   { href: "/evaluasi", label: "Evaluasi model" },
   { href: "/data", label: "Data" },
+  { href: "/admin", label: "Admin" },
 ];
 
 function ThemeToggle() {

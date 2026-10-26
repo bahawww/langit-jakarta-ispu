@@ -1,7 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Field, Input, Select } from "@/components/ui/field";
+import { DateInput } from "@/components/ui/date-input";
+import { Field, Select } from "@/components/ui/field";
 import { useApi, type Meta } from "@/lib/api";
 import { useFilters } from "@/lib/filters";
 
@@ -36,24 +37,22 @@ export function FilterBar({
       </Field>
       {showDates ? (
         <>
-          <Field label="Dari tanggal" htmlFor="f-start" className="lg:w-44">
-            <Input
+          <Field label="Dari tanggal (dd/mm/yyyy)" htmlFor="f-start" className="lg:w-44">
+            <DateInput
               id="f-start"
-              type="date"
               min={m?.date_min ?? undefined}
               max={filters.end ?? m?.date_max ?? undefined}
-              value={filters.start ?? ""}
-              onChange={(e) => setParam("start", e.target.value || undefined)}
+              value={filters.start}
+              onChange={(v) => setParam("start", v)}
             />
           </Field>
-          <Field label="Sampai tanggal" htmlFor="f-end" className="lg:w-44">
-            <Input
+          <Field label="Sampai tanggal (dd/mm/yyyy)" htmlFor="f-end" className="lg:w-44">
+            <DateInput
               id="f-end"
-              type="date"
               min={filters.start ?? m?.date_min ?? undefined}
               max={m?.date_max ?? undefined}
-              value={filters.end ?? ""}
-              onChange={(e) => setParam("end", e.target.value || undefined)}
+              value={filters.end}
+              onChange={(v) => setParam("end", v)}
             />
           </Field>
         </>

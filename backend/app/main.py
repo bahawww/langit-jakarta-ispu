@@ -5,11 +5,13 @@ import uuid
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from app.api import ml_routes, stats_routes
+from app.api import admin_routes, ml_routes, stats_routes
 from app.api.routes import router
+from app.auth import check_config
 from app.logging_setup import setup_logging
 
 setup_logging()
+check_config()  # gagal cepat bila kredensial admin / JWT_SECRET belum diisi
 log = logging.getLogger("app.http")
 
 app = FastAPI(
@@ -21,6 +23,7 @@ app = FastAPI(
 app.include_router(router)
 app.include_router(ml_routes.router)
 app.include_router(stats_routes.router)
+app.include_router(admin_routes.router)
 
 
 @app.middleware("http")

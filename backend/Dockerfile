@@ -9,7 +9,9 @@ WORKDIR /app
 COPY backend/requirements.lock ./
 # shortcut: dependency tes ikut terpasang di image produksi agar pytest bisa jalan di container;
 # pisahkan ke stage build terpisah jika ukuran image jadi masalah.
-RUN pip install --no-cache-dir -r requirements.lock
+# Cache pip BuildKit: rebuild setelah lock berubah hanya mengunduh paket yang baru.
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --timeout 60 --retries 10 -r requirements.lock
 
 COPY ml/ /ml/
 COPY backend/ ./

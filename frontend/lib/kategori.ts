@@ -1,5 +1,6 @@
 // Satu sumber warna kategori ISPU untuk badge, tabel, dan chart.
-// Warna latar solid + teks dengan kontras >= 4.5:1 (WCAG AA) di light maupun dark mode.
+// Palet resmi ISPU (PermenLHK P.14/2020): Baik hijau, Sedang biru, Tidak Sehat kuning,
+// Sangat Tidak Sehat merah, Berbahaya hitam. Pasangan latar/teks dipilih agar kontras >= 4.5:1.
 export const KATEGORI = [
   "BAIK",
   "SEDANG",
@@ -11,10 +12,10 @@ export type Kategori = (typeof KATEGORI)[number];
 
 export const KATEGORI_STYLE: Record<Kategori, { bg: string; fg: string; label: string }> = {
   BAIK: { bg: "#15803d", fg: "#ffffff", label: "Baik" },
-  SEDANG: { bg: "#facc15", fg: "#422006", label: "Sedang" },
-  "TIDAK SEHAT": { bg: "#dc2626", fg: "#ffffff", label: "Tidak sehat" },
-  "SANGAT TIDAK SEHAT": { bg: "#7e22ce", fg: "#ffffff", label: "Sangat tidak sehat" },
-  BERBAHAYA: { bg: "#450a0a", fg: "#ffffff", label: "Berbahaya" },
+  SEDANG: { bg: "#1d4ed8", fg: "#ffffff", label: "Sedang" },
+  "TIDAK SEHAT": { bg: "#facc15", fg: "#422006", label: "Tidak sehat" },
+  "SANGAT TIDAK SEHAT": { bg: "#dc2626", fg: "#ffffff", label: "Sangat tidak sehat" },
+  BERBAHAYA: { bg: "#0a0a0a", fg: "#ffffff", label: "Berbahaya" },
 };
 
 export const AMBANG = [

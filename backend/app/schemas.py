@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class StationOut(BaseModel):
@@ -170,3 +170,43 @@ class StationStats(BaseModel):
     pct_tidak_sehat: float
     by_kategori: dict[str, int]
     kritis: dict[str, int]
+
+
+class LoginIn(BaseModel):
+    username: str = Field(min_length=1, max_length=100)
+    password: str = Field(min_length=1, max_length=200)
+
+
+class MeOut(BaseModel):
+    username: str
+
+
+class RejectedRow(BaseModel):
+    line: int
+    reason: str
+
+
+class UploadOut(BaseModel):
+    id: int
+    created_at: datetime
+    filename: str
+    source: str
+    format: str | None
+    status: str
+    total_rows: int
+    inserted: int
+    updated: int
+    unchanged: int
+    rejected: int
+    error: str | None
+    retrain_queued: bool | None = None
+
+
+class UploadDetail(UploadOut):
+    rejected_details: list[RejectedRow]
+
+
+class QueuedOut(BaseModel):
+    queued: bool
+    task_id: str | None
+    message: str

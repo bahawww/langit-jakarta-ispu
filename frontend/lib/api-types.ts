@@ -265,10 +265,138 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/auth/login": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Login */
+    post: operations["login_api_auth_login_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/logout": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Logout */
+    post: operations["logout_api_auth_logout_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/me": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Me */
+    get: operations["me_api_auth_me_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/uploads": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Uploads */
+    get: operations["list_uploads_api_admin_uploads_get"];
+    put?: never;
+    /** Upload Csv */
+    post: operations["upload_csv_api_admin_uploads_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/uploads/{upload_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Upload */
+    get: operations["get_upload_api_admin_uploads__upload_id__get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/train": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Trigger Training */
+    post: operations["trigger_training_api_admin_train_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/models/{model_id}/rollback": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Rollback Model */
+    post: operations["rollback_model_api_admin_models__model_id__rollback_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /** Body_upload_csv_api_admin_uploads_post */
+    Body_upload_csv_api_admin_uploads_post: {
+      /**
+       * File
+       * @description CSV mentah atau bersih
+       */
+      file: string;
+    };
     /** ClassMetrics */
     ClassMetrics: {
       /** Precision */
@@ -346,6 +474,18 @@ export interface components {
     HTTPValidationError: {
       /** Detail */
       detail?: components["schemas"]["ValidationError"][];
+    };
+    /** LoginIn */
+    LoginIn: {
+      /** Username */
+      username: string;
+      /** Password */
+      password: string;
+    };
+    /** MeOut */
+    MeOut: {
+      /** Username */
+      username: string;
     };
     /** MeasurementOut */
     MeasurementOut: {
@@ -521,6 +661,22 @@ export interface components {
       /** Label */
       label: string;
     };
+    /** QueuedOut */
+    QueuedOut: {
+      /** Queued */
+      queued: boolean;
+      /** Task Id */
+      task_id: string | null;
+      /** Message */
+      message: string;
+    };
+    /** RejectedRow */
+    RejectedRow: {
+      /** Line */
+      line: number;
+      /** Reason */
+      reason: string;
+    };
     /** StationOut */
     StationOut: {
       /** Code */
@@ -599,6 +755,72 @@ export interface components {
       details: {
         [key: string]: unknown;
       };
+    };
+    /** UploadDetail */
+    UploadDetail: {
+      /** Id */
+      id: number;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Filename */
+      filename: string;
+      /** Source */
+      source: string;
+      /** Format */
+      format: string | null;
+      /** Status */
+      status: string;
+      /** Total Rows */
+      total_rows: number;
+      /** Inserted */
+      inserted: number;
+      /** Updated */
+      updated: number;
+      /** Unchanged */
+      unchanged: number;
+      /** Rejected */
+      rejected: number;
+      /** Error */
+      error: string | null;
+      /** Retrain Queued */
+      retrain_queued?: boolean | null;
+      /** Rejected Details */
+      rejected_details: components["schemas"]["RejectedRow"][];
+    };
+    /** UploadOut */
+    UploadOut: {
+      /** Id */
+      id: number;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Filename */
+      filename: string;
+      /** Source */
+      source: string;
+      /** Format */
+      format: string | null;
+      /** Status */
+      status: string;
+      /** Total Rows */
+      total_rows: number;
+      /** Inserted */
+      inserted: number;
+      /** Updated */
+      updated: number;
+      /** Unchanged */
+      unchanged: number;
+      /** Rejected */
+      rejected: number;
+      /** Error */
+      error: string | null;
+      /** Retrain Queued */
+      retrain_queued?: boolean | null;
     };
     /** ValidationError */
     ValidationError: {
@@ -1106,6 +1328,223 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["MeasurementOut"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  login_api_auth_login_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["LoginIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["MeOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  logout_api_auth_logout_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  me_api_auth_me_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["MeOut"];
+        };
+      };
+    };
+  };
+  list_uploads_api_admin_uploads_get: {
+    parameters: {
+      query?: {
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UploadOut"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  upload_csv_api_admin_uploads_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "multipart/form-data": components["schemas"]["Body_upload_csv_api_admin_uploads_post"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UploadOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_upload_api_admin_uploads__upload_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        upload_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UploadDetail"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  trigger_training_api_admin_train_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["QueuedOut"];
+        };
+      };
+    };
+  };
+  rollback_model_api_admin_models__model_id__rollback_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        model_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["TrainingRunOut"];
         };
       };
       /** @description Validation Error */

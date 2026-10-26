@@ -9,6 +9,12 @@ _url = make_url(os.environ["DATABASE_URL"])
 _test_url = _url.set(database=f"{_url.database}_test")
 os.environ["DATABASE_URL"] = _test_url.render_as_string(hide_password=False)
 os.environ["ARTIFACTS_DIR"] = tempfile.mkdtemp(prefix="ispu-artifacts-")
+os.environ.update(
+    ADMIN_USERNAME="admin-test",
+    ADMIN_PASSWORD="rahasia-tes-123",
+    JWT_SECRET="x" * 48,
+    COOKIE_SECURE="false",  # TestClient memakai http://testserver
+)
 
 import pytest  # noqa: E402
 from alembic import command  # noqa: E402

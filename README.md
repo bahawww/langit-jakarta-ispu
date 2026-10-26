@@ -1,6 +1,6 @@
 # Platform Monitoring & Prediksi Kualitas Udara ISPU DKI Jakarta
 
-Status: **Tahap 4 (frontend dashboard)**. README lengkap (arsitektur, deploy, retraining, model) menyusul di Tahap 6.
+Status: **Tahap 5 (admin & auth)**. README lengkap (arsitektur, deploy, retraining, model) menyusul di Tahap 6.
 Rencana dan keputusan desain: [`docs/PLAN.md`](docs/PLAN.md).
 
 ## Menjalankan lokal
@@ -48,3 +48,12 @@ deploy/build.sh web && docker compose -f deploy/compose.yaml up -d --no-build we
 ```
 
 Screenshot: [`docs/screenshots/`](docs/screenshots/).
+
+## Admin
+
+`/admin` (login wajib; dashboard lain publik read-only). Kredensial dari `deploy/.env`
+api menolak start bila kosong.
+
+- Upload: hanya `.csv`, maks 5 MB, UTF-8; laporan baru/update/tidak berubah/ditolak + alasan per baris.
+  Retraining otomatis diantrekan hanya bila data berubah.
+- Retrain manual dan rollback model satu klik (konfirmasi dua langkah) dari halaman admin.

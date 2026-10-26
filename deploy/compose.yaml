@@ -45,7 +45,12 @@ services:
     # Di VPS ini build lewat deploy/build.sh (--network host): bridge BuildKit ~60 KB/s ke PyPI.
     image: ispu-backend:latest
     restart: unless-stopped
-    environment: *backend-env
+    environment:
+      <<: *backend-env
+      ADMIN_USERNAME: ${ADMIN_USERNAME:?isi ADMIN_USERNAME di deploy/.env}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?isi ADMIN_PASSWORD di deploy/.env}
+      JWT_SECRET: ${JWT_SECRET:?isi JWT_SECRET di deploy/.env}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
     volumes:
       - *seed-clean
       - *seed-orange

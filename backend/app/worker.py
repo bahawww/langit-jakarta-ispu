@@ -21,6 +21,7 @@ celery.conf.update(
     task_acks_late=True,
     worker_prefetch_multiplier=1,
     worker_hijack_root_logger=False,
+    broker_connection_timeout=3,
     beat_schedule={
         "retrain-mingguan": {
             "task": "ispu.train",

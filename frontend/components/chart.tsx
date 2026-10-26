@@ -42,9 +42,10 @@ export function useChartColors() {
     muted: dark ? "#a3b1c6" : "#475569",
     grid: dark ? "#334155" : "#e2e8f0",
     tooltipBg: dark ? "#1b2336" : "#ffffff",
+    // Sengaja bukan hijau/biru/kuning/merah/hitam agar tidak tertukar dengan warna kategori ISPU.
     series: dark
-      ? ["#60a5fa", "#f59e0b", "#34d399", "#f472b6", "#a78bfa", "#22d3ee"]
-      : ["#2563eb", "#d97706", "#059669", "#db2777", "#7c3aed", "#0891b2"],
+      ? ["#a78bfa", "#fb923c", "#2dd4bf", "#f472b6", "#94a3b8", "#22d3ee"]
+      : ["#6d28d9", "#c2410c", "#0f766e", "#be185d", "#475569", "#0e7490"],
   };
 }
 
