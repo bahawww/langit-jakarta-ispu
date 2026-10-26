@@ -14,7 +14,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
       }),
   );
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+    // data-theme="light|dark" sesuai design system Udara Jakarta
+    <ThemeProvider
+      attribute="data-theme"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
       <QueryClientProvider client={client}>{children}</QueryClientProvider>
     </ThemeProvider>
   );

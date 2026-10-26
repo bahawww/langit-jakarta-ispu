@@ -5,6 +5,7 @@ import { LogOut, RotateCcw, Upload, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { PageHeader } from "@/components/page-header";
 import { QueryView } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { ScrollX } from "@/components/ui/scroll-x";
@@ -24,6 +25,7 @@ import {
   type UploadOut,
 } from "@/lib/api";
 import { fmt } from "@/lib/format";
+import { modelLabel } from "@/lib/labels";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const REFRESH_KEYS = [
@@ -45,9 +47,9 @@ function useRefreshAll() {
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-md border border-border p-3">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="text-xl font-semibold">{fmt.int(value)}</p>
+    <div className="ua-chip">
+      <span className="ua-chip__k">{label}</span>
+      <span className="ua-t-stat-sm">{fmt.int(value)}</span>
     </div>
   );
 }
@@ -98,23 +100,23 @@ function UploadReport({ upload }: { upload: UploadOut }) {
           <QueryView query={detail} skeleton={<Skeleton className="mt-2 h-24 w-full" />}>
             {(d) => (
               <div className="mt-2 max-h-72 overflow-auto">
-                <table className="w-full text-sm">
+                <table className="ua-table">
                   <caption className="sr-only">Baris yang ditolak</caption>
                   <thead>
-                    <tr className="text-left text-xs text-muted-foreground">
-                      <th scope="col" className="py-1 pr-3 font-medium">
+                    <tr>
+                      <th scope="col" className="ua-left">
                         Baris
                       </th>
-                      <th scope="col" className="py-1 font-medium">
+                      <th scope="col" className="ua-left">
                         Alasan
                       </th>
                     </tr>
                   </thead>
                   <tbody>
                     {d.rejected_details.map((r) => (
-                      <tr key={r.line} className="border-t border-border">
-                        <td className="py-1 pr-3">{r.line}</td>
-                        <td className="py-1">{r.reason}</td>
+                      <tr key={r.line}>
+                        <td className="ua-left">{r.line}</td>
+                        <td className="ua-left">{r.reason}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -133,7 +135,7 @@ function UploadCard() {
   const [file, setFile] = useState<File | null>(null);
   const [clientError, setClientError] = useState<string | null>(null);
   const [result, setResult] = useState<UploadOut | null>(null);
-  const history = useApi<UploadOut[]>("/admin/uploads", { limit: 10 });
+  const history = useApi<UploadOut[]>("/admin/uploads", { limit: 5 });
   const upload = useMutation<UploadOut, ApiError, File>({
     mutationFn: (file) => {
       const form = new FormData();
@@ -199,45 +201,43 @@ function UploadCard() {
           >
             {(rows) => (
               <ScrollX label="Riwayat upload">
-                <table className="w-full min-w-[640px] text-sm">
+                <table className="ua-table min-w-[640px]">
                   <caption className="sr-only">Riwayat upload</caption>
                   <thead>
-                    <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                      <th scope="col" className="py-2 pr-3 font-medium">
+                    <tr>
+                      <th scope="col" className="ua-left">
                         Waktu
                       </th>
-                      <th scope="col" className="py-2 pr-3 font-medium">
+                      <th scope="col" className="ua-left">
                         File
                       </th>
-                      <th scope="col" className="py-2 pr-3 font-medium">
+                      <th scope="col" className="ua-left">
                         Sumber
                       </th>
-                      <th scope="col" className="py-2 pr-3 font-medium">
+                      <th scope="col" className="ua-left">
                         Status
                       </th>
-                      <th scope="col" className="py-2 pr-3 text-right font-medium">
-                        Baru
-                      </th>
-                      <th scope="col" className="py-2 pr-3 text-right font-medium">
-                        Update
-                      </th>
-                      <th scope="col" className="py-2 text-right font-medium">
-                        Ditolak
-                      </th>
+                      <th scope="col">Baru</th>
+                      <th scope="col">Update</th>
+                      <th scope="col">Ditolak</th>
                     </tr>
                   </thead>
                   <tbody>
                     {rows.map((u) => (
-                      <tr key={u.id} className="border-b border-border last:border-0">
-                        <td className="py-2 pr-3 whitespace-nowrap">
-                          {fmt.dateTime(u.created_at)}
+                      <tr key={u.id}>
+                        <td className="ua-left whitespace-nowrap">{fmt.dateTime(u.created_at)}</td>
+                        <td className="ua-left">{u.filename}</td>
+                        <td className="ua-left ua-mute">{u.source}</td>
+                        <td className="ua-left">
+                          <span
+                            className={`ua-badge ${u.status === "success" ? "ua-badge--success" : "ua-badge--warning"}`}
+                          >
+                            {u.status === "success" ? "berhasil" : "gagal"}
+                          </span>
                         </td>
-                        <td className="py-2 pr-3">{u.filename}</td>
-                        <td className="py-2 pr-3">{u.source}</td>
-                        <td className="py-2 pr-3">{u.status}</td>
-                        <td className="py-2 pr-3 text-right">{fmt.int(u.inserted)}</td>
-                        <td className="py-2 pr-3 text-right">{fmt.int(u.updated)}</td>
-                        <td className="py-2 text-right">{fmt.int(u.rejected)}</td>
+                        <td>{fmt.int(u.inserted)}</td>
+                        <td>{fmt.int(u.updated)}</td>
+                        <td>{fmt.int(u.rejected)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -255,8 +255,8 @@ function TrainingCard() {
   const refresh = useRefreshAll();
   const [queuedAt, setQueuedAt] = useState<number | null>(null);
   const runs = useQuery<TrainingRun[], ApiError>({
-    queryKey: ["/training-runs", { limit: 8 }],
-    queryFn: () => apiGet("/training-runs", { limit: 8 }),
+    queryKey: ["/training-runs", { limit: 5 }],
+    queryFn: () => apiGet("/training-runs", { limit: 5 }),
     // Poll selama ada training berjalan atau baru diantrekan (< 3 menit).
     refetchInterval: (q) => {
       const running = q.state.data?.some((r) => r.status === "running");
@@ -310,9 +310,9 @@ function TrainingCard() {
           isEmpty={(d) => d.length === 0}
         >
           {(d) => (
-            <ul className="space-y-2 text-sm" aria-live="polite">
+            <ul className="m-0 flex list-none flex-col gap-2 p-0 text-sm" aria-live="polite">
               {d.map((r) => (
-                <li key={r.id} className="rounded-md border border-border p-3">
+                <li key={r.id} className="rounded-md border border-line p-3">
                   <p className="font-medium">
                     #{r.id} · {r.trigger} ·{" "}
                     <span className={r.status === "failed" ? "text-destructive" : undefined}>
@@ -370,49 +370,49 @@ function RegistryCard() {
         >
           {(d) => (
             <ScrollX label="Versi model">
-              <table className="w-full min-w-[720px] text-sm">
+              <table className="ua-table min-w-[720px]">
                 <caption className="sr-only">Versi model</caption>
                 <thead>
-                  <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                    <th scope="col" className="py-2 pr-3 font-medium">
-                      Task
+                  <tr>
+                    <th scope="col" className="ua-left">
+                      Model
                     </th>
-                    <th scope="col" className="py-2 pr-3 font-medium">
-                      Versi
-                    </th>
-                    <th scope="col" className="py-2 pr-3 font-medium">
+                    <th scope="col" className="ua-left">
                       Algoritma
                     </th>
-                    <th scope="col" className="py-2 pr-3 font-medium">
+                    <th scope="col" className="ua-left">
                       Status
                     </th>
-                    <th scope="col" className="py-2 pr-3 font-medium">
+                    <th scope="col" className="ua-left">
                       Data sampai
                     </th>
-                    <th scope="col" className="py-2 pr-3 font-medium">
-                      Metrik utama
-                    </th>
-                    <th scope="col" className="py-2 font-medium">
+                    <th scope="col">Metrik utama</th>
+                    <th scope="col">
                       <span className="sr-only">Aksi</span>
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {d.map((v) => (
-                    <tr key={v.id} className="border-b border-border last:border-0">
-                      <td className="py-2 pr-3">
-                        {v.task === "forecast" ? "Forecast" : "Klasifikasi"}
+                    <tr key={v.id}>
+                      <th scope="row">
+                        {v.task === "forecast" ? "Forecast" : "Klasifikasi"} v{v.version}
+                      </th>
+                      <td className="ua-left">{modelLabel(v.algorithm)}</td>
+                      <td className="ua-left">
+                        <span
+                          className={`ua-badge ${v.status === "champion" ? "ua-badge--success" : v.status === "rejected" ? "ua-badge--warning" : "ua-badge--neutral"}`}
+                        >
+                          {v.status}
+                        </span>
                       </td>
-                      <td className="py-2 pr-3">v{v.version}</td>
-                      <td className="py-2 pr-3">{v.algorithm}</td>
-                      <td className="py-2 pr-3">{v.status}</td>
-                      <td className="py-2 pr-3">{fmt.date(v.data_end)}</td>
-                      <td className="py-2 pr-3">
+                      <td className="ua-left">{fmt.date(v.data_end)}</td>
+                      <td>
                         {v.primary_metric} = {fmt.num(v.primary_value)}
                       </td>
-                      <td className="py-2 text-right">
+                      <td>
                         {v.status === "champion" ? (
-                          <span className="text-xs text-muted-foreground">aktif</span>
+                          <span className="text-xs text-ink-3">aktif</span>
                         ) : confirm === v.id ? (
                           <span className="inline-flex gap-2">
                             <Button
@@ -480,21 +480,20 @@ export function AdminView() {
   }
   return (
     <>
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">Admin</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Masuk sebagai {me.data.username}.</p>
-        </div>
-        <Button variant="outline" onClick={logout}>
-          <LogOut aria-hidden /> Keluar
-        </Button>
-      </div>
-      <div className="grid gap-5">
+      <PageHeader
+        title="Admin"
+        description="Unggah data baru, latih ulang model, dan kembalikan versi model sebelumnya bila perlu."
+        meta={[{ k: "Masuk sebagai", v: me.data.username }]}
+        action={
+          <Button variant="outline" onClick={logout}>
+            <LogOut aria-hidden /> Keluar
+          </Button>
+        }
+      />
+      <div className="grid gap-4">
         <UploadCard />
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-          <TrainingCard />
-          <RegistryCard />
-        </div>
+        <TrainingCard />
+        <RegistryCard />
       </div>
     </>
   );

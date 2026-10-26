@@ -39,7 +39,7 @@ export function LoginView() {
 
   return (
     <div className="mx-auto max-w-sm py-8">
-      <h1 className="mb-4 text-2xl font-semibold">Login admin</h1>
+      <h1 className="ua-t-heading-1 mb-4">Login admin</h1>
       <Card>
         <CardBody>
           <form onSubmit={onSubmit} className="grid gap-4" noValidate>

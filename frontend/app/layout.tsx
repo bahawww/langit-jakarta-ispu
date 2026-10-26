@@ -1,35 +1,35 @@
 import type { Metadata, Viewport } from "next";
-import { Fira_Sans } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 
 import { AppShell } from "@/components/app-shell";
 
 import "./globals.css";
 import { Providers } from "./providers";
 
-const fira = Fira_Sans({
+const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-fira-sans",
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-jakarta",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: { default: "Kualitas Udara Jakarta", template: "%s · Kualitas Udara Jakarta" },
+  title: { default: "Udara Jakarta", template: "%s · Udara Jakarta" },
   description:
     "Monitoring dan prediksi kualitas udara (ISPU) dari 5 stasiun SPKU DKI Jakarta. Sumber data: DLH DKI Jakarta via Satu Data Jakarta.",
 };
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
-    { media: "(prefers-color-scheme: dark)", color: "#0f172a" },
+    { media: "(prefers-color-scheme: light)", color: "#F6F7FB" },
+    { media: "(prefers-color-scheme: dark)", color: "#0B0D17" },
   ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id" suppressHydrationWarning className={fira.variable}>
-      <body className="min-h-dvh font-sans antialiased">
+    <html lang="id" suppressHydrationWarning className={jakarta.variable}>
+      <body className="min-h-dvh">
         <Providers>
           <AppShell>{children}</AppShell>
         </Providers>

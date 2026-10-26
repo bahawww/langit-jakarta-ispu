@@ -36,7 +36,7 @@ flowchart LR
 |---|---|
 | `backend/` | FastAPI + Pydantic v2, SQLAlchemy 2, Alembic, ingest, auth, Celery, tes pytest |
 | `ml/` | Paket `ispu_ml`: klasifikasi, forecasting, metrik, snapshot data |
-| `frontend/` | Next.js 16 (App Router) + TS, Tailwind 4, komponen gaya shadcn/ui, TanStack Query, ECharts 6, tes Playwright |
+| `frontend/` | Next.js 16 (App Router) + TS, Tailwind 4, design system Udara Jakarta (`ua-*`), TanStack Query, ECharts 6, tes Playwright |
 | `deploy/` | `compose.yaml`, `Caddyfile`, `build.sh`, `backup.sh`, `restore.sh`, `cloudflare-publish.sh` |
 | root | Data asli (CSV/XLSX, tidak pernah diubah; checksum di `docs/original-files.sha256`) dan dokumen tugas |
 
@@ -61,6 +61,24 @@ Dokumentasi API: `http://127.0.0.1:8300/api/docs`.
 
 Frontend dev dengan hot reload: `cd frontend && npm ci && API_PROXY=http://127.0.0.1:8300 npm run dev`.
 Tipe TypeScript API dibuat dari OpenAPI: `npm run gen:api` (butuh stack berjalan).
+
+## Desain
+
+Tampilan mengikuti dua artifact milik pemilik proyek: design system **Udara Jakarta** (token warna, Plus
+Jakarta Sans, komponen `ua-*`) dan **Mockup Dashboard ML** (susunan halaman). Sumber kebenaran ada di repo:
+
+- `frontend/design/tokens.json` dan `frontend/design/bundle.css` disalin dari design system.
+- `npm run gen:tokens` membuat `app/tokens.css` (variabel CSS terang/gelap, kelas teks `ua-t-*`) dan
+  `app/ua.css` (komponen). Keduanya jangan diedit langsung; tambahan di luar bundle ada di `app/ua-extras.css`.
+- Tema memakai `data-theme="light|dark"` di `<html>`. Grafik (ECharts) membaca token yang sama, jadi ikut berganti tema.
+- Warna kategori ISPU hanya dari token `--ispu-*`; warna model (`--accent`, `--series-2`) tidak dipakai untuk kategori.
+- Aturan sistem yang ikut diterapkan: kalimat "artinya apa" di tiap kartu, maksimal 2 seri per grafik model,
+  maksimal 4 kartu metrik per baris, lebih dari 4 pilihan = dropdown, target sentuh 44 px, kontras AA (diuji axe).
+
+Penyimpangan yang disengaja: angka memakai format `id-ID` (koma desimal, `0,947`) agar konsisten dengan seluruh
+antarmuka, sedangkan README design system menyebut titik. Kalimat kesimpulan di mockup adalah data contoh;
+di aplikasi semuanya dihitung dari database. Bagian mockup yang belum ada (ROC, learning curve, pohon keputusan,
+feature importance) tidak digambar karena backend belum menghitungnya.
 
 ## Filter
 

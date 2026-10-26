@@ -1,67 +1,76 @@
 "use client";
 
-import { AlertTriangle, Info } from "lucide-react";
 import { useMemo } from "react";
 
-import { EChart, timeAxisLabel, useChartColors } from "@/components/chart";
-import { KategoriBadge } from "@/components/kategori-badge";
+import { ChartLegend, EChart, timeAxisLabel, useChartColors } from "@/components/chart";
+import { IspuBadge } from "@/components/ispu";
 import { PageHeader } from "@/components/page-header";
 import { ChartSkeleton, EmptyState, QueryView } from "@/components/states";
-import { ScrollX } from "@/components/ui/scroll-x";
+import { Callout } from "@/components/ui/callout";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Field, Select } from "@/components/ui/field";
+import { ScrollX } from "@/components/ui/scroll-x";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useApi, type DailyPoint, type ForecastDay, type ForecastOut, type Meta } from "@/lib/api";
 import { useFilters } from "@/lib/filters";
 import { fmt } from "@/lib/format";
 import { AMBANG } from "@/lib/kategori";
-import { kritisLabel, shortStation } from "@/lib/labels";
+import { modelLabel, shortStation } from "@/lib/labels";
 
-const KRITIS_KEY: Record<string, string> = {
-  pm_duakomalima: "PM25",
-  pm_sepuluh: "PM10",
-  sulfur_dioksida: "SO2",
-  karbon_monoksida: "CO",
-  ozon: "O3",
-  nitrogen_dioksida: "NO2",
-};
-
-function Alerts({ items }: { items: ForecastDay[] }) {
+function Alerts({
+  items,
+  pollutantLabel,
+}: {
+  items: ForecastDay[];
+  pollutantLabel: (key: string) => string;
+}) {
   const sure = items.filter((i) => i.alert);
   const maybe = items.filter((i) => !i.alert && i.alert_possible);
   if (!sure.length && !maybe.length) {
     return (
-      <div className="mb-5 flex items-start gap-2 rounded-md border border-border bg-card p-3 text-sm">
-        <Info aria-hidden className="mt-0.5 size-4 shrink-0" />
-        Tidak ada stasiun yang diprediksi TIDAK SEHAT dalam 7 hari forecast, termasuk pada batas
+      <Callout label="Ringkasan:">
+        tidak ada stasiun yang diprediksi Tidak Sehat dalam 7 hari ke depan, termasuk pada batas
         atas interval.
-      </div>
+      </Callout>
     );
   }
   return (
-    <div
-      role="alert"
-      className="mb-5 rounded-md border border-border bg-warning-bg p-3 text-sm text-warning-fg"
-    >
-      <p className="flex items-center gap-2 font-semibold">
-        <AlertTriangle aria-hidden className="size-4" /> Peringatan kualitas udara
-      </p>
-      <ul className="mt-2 list-disc space-y-1 pl-5">
+    <section aria-labelledby="h-peringatan" className="ua-card">
+      <div>
+        <h2 id="h-peringatan" className="ua-card__title">
+          Peringatan kualitas udara
+        </h2>
+        <p className="ua-card__sub">
+          Hari dan stasiun yang perlu diperhatikan dalam 7 hari ke depan.
+        </p>
+      </div>
+      <ul className="m-0 flex list-none flex-col gap-2 p-0" role="alert">
         {sure.map((i) => (
-          <li key={`${i.station_code}-${i.target_date}`}>
-            {shortStation(i.station_name)}, {fmt.dayShort(i.target_date)}: diprediksi{" "}
-            <strong>{i.kategori}</strong> (indeks {fmt.idx(i.max_yhat)}, kritis{" "}
-            {kritisLabel(KRITIS_KEY[i.critical] ?? i.critical)})
+          <li
+            key={`${i.station_code}-${i.target_date}`}
+            className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm"
+          >
+            <IspuBadge value={i.kategori} />
+            <span>
+              <strong>{shortStation(i.station_name)}</strong>, {fmt.dayShort(i.target_date)}: indeks
+              diperkirakan {fmt.idx(i.max_yhat)}, penyebab {pollutantLabel(i.critical)}.
+            </span>
           </li>
         ))}
         {maybe.map((i) => (
-          <li key={`${i.station_code}-${i.target_date}-m`}>
-            {shortStation(i.station_name)}, {fmt.dayShort(i.target_date)}: perkiraan {i.kategori},
-            tetapi batas atas interval mencapai <strong>{i.kategori_upper}</strong>
+          <li
+            key={`${i.station_code}-${i.target_date}-m`}
+            className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm"
+          >
+            <span className="ua-badge ua-badge--warning">Mungkin</span>
+            <span>
+              <strong>{shortStation(i.station_name)}</strong>, {fmt.dayShort(i.target_date)}:
+              perkiraan {i.kategori}, tetapi batas atas interval mencapai {i.kategori_upper}.
+            </span>
           </li>
         ))}
       </ul>
-    </div>
+    </section>
   );
 }
 
@@ -70,39 +79,33 @@ function Grid({ items }: { items: ForecastDay[] }) {
   const dates = [...new Set(items.map((i) => i.target_date))].sort();
   const at = new Map(items.map((i) => [`${i.station_code}|${i.target_date}`, i]));
   return (
-    <ScrollX label="Kategori prediksi per stasiun per hari">
-      <table className="w-full min-w-[720px] text-sm">
+    <ScrollX label="Tabel kategori prediksi per stasiun per hari">
+      <table className="ua-table min-w-[760px]">
         <caption className="sr-only">Kategori prediksi per stasiun per hari</caption>
         <thead>
-          <tr className="border-b border-border text-left text-xs text-muted-foreground">
-            <th scope="col" className="py-2 pr-3 font-medium">
-              Stasiun
-            </th>
+          <tr>
+            <th scope="col">Stasiun</th>
             {dates.map((d, i) => (
-              <th scope="col" key={d} className="py-2 pr-2 font-medium">
+              <th scope="col" key={d} className="ua-left">
                 H+{i + 1}
-                <span className="block font-normal">{fmt.dayShort(d)}</span>
+                <span className="block text-xs font-medium">{fmt.dayShort(d)}</span>
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
           {stations.map(([code, name]) => (
-            <tr key={code} className="border-b border-border last:border-0">
-              <th scope="row" className="py-2 pr-3 text-left font-medium">
-                {shortStation(name)}
-              </th>
+            <tr key={code}>
+              <th scope="row">{shortStation(name)}</th>
               {dates.map((d) => {
                 const i = at.get(`${code}|${d}`);
                 return (
-                  <td key={d} className="py-2 pr-2 align-top">
+                  <td key={d} className="ua-left align-top">
                     {i ? (
-                      <>
-                        <KategoriBadge value={i.kategori} />
-                        <span className="mt-1 block text-xs text-muted-foreground">
-                          maks {fmt.idx(i.max_yhat)}
-                        </span>
-                      </>
+                      <div className="flex flex-col items-start gap-1">
+                        <IspuBadge value={i.kategori} />
+                        <span className="text-xs text-ink-3">indeks {fmt.idx(i.max_yhat)}</span>
+                      </div>
                     ) : (
                       "–"
                     )}
@@ -145,22 +148,21 @@ function StationChart({
       ...items.map((i) => ({ t: i.target_date, ...pick(i) })),
     ];
     return {
-      grid: { left: 44, right: 16, top: 64, bottom: 40 },
-      legend: {
-        top: 0,
-        textStyle: { color: c.text },
-        data: ["Aktual (30 hari terakhir)", "Prediksi", "Interval 10–90%"],
+      grid: { left: 44, right: 16, top: 16, bottom: 40 },
+      tooltip: {
+        trigger: "axis",
+        valueFormatter: (v: number) => fmt.idx(v),
       },
-      tooltip: { trigger: "axis", valueFormatter: (v: number) => fmt.idx(v) },
       xAxis: {
         type: "time",
-        axisLabel: { color: c.muted, hideOverlap: true, formatter: timeAxisLabel },
+        axisLabel: { color: c.muted, fontSize: 11, hideOverlap: true, formatter: timeAxisLabel },
+        axisLine: { lineStyle: { color: c.axis } },
       },
       yAxis: {
         type: "value",
         name: "Indeks ISPU",
-        nameTextStyle: { color: c.muted },
-        axisLabel: { color: c.muted },
+        nameTextStyle: { color: c.muted, fontSize: 11 },
+        axisLabel: { color: c.muted, fontSize: 11 },
         splitLine: { lineStyle: { color: c.grid } },
       },
       series: [
@@ -168,16 +170,19 @@ function StationChart({
           name: "Aktual (30 hari terakhir)",
           type: "line",
           showSymbol: false,
+          lineStyle: { width: 2.5, color: c.accent, cap: "round", join: "round" },
+          itemStyle: { color: c.accent },
           data: history.map((d) => [d.tanggal, d.avg]),
           markLine: {
             symbol: "none",
             silent: true,
-            lineStyle: { type: "dashed", color: c.muted },
+            lineStyle: { type: "dashed", color: c.axis },
             label: {
               formatter: "{b}",
               color: c.muted,
+              fontSize: 11,
               position: "insideStartTop",
-              backgroundColor: c.tooltipBg,
+              backgroundColor: c.surface,
               padding: [1, 4],
             },
             data: AMBANG.map((a) => ({ name: a.label, yAxis: a.value })),
@@ -199,17 +204,17 @@ function StationChart({
           stack: "band",
           symbol: "none",
           lineStyle: { opacity: 0 },
-          areaStyle: { color: c.series[1], opacity: 0.25 },
-          itemStyle: { color: c.series[1] },
+          areaStyle: { color: `${c.series2}33` },
+          itemStyle: { color: c.series2 },
           tooltip: { show: false },
           data: f.map((p) => [p.t, p.hi - p.lo]),
         },
         {
           name: "Prediksi",
           type: "line",
-          symbolSize: 6,
-          lineStyle: { type: "dashed" },
-          itemStyle: { color: c.series[1] },
+          symbolSize: 7,
+          lineStyle: { width: 2.5, type: "dashed", color: c.series2, cap: "round" },
+          itemStyle: { color: c.series2 },
           data: f.map((p) => [p.t, p.yhat]),
         },
       ],
@@ -241,43 +246,54 @@ export function PrediksiView() {
   );
   const options = [
     ...(meta.data?.pollutants ?? []),
-    { key: "max", label: "Indeks maks (6 polutan)" },
+    { key: "max", label: "Indeks tertinggi (6 polutan)" },
   ];
   const label = options.find((o) => o.key === pollutant)?.label ?? pollutant;
+  const pollutantLabel = (key: string) =>
+    meta.data?.pollutants.find((p) => p.key === key)?.label ?? key;
+  const d = fc.data;
+  const chips = d?.items.length
+    ? [
+        { k: "Model", v: `${modelLabel("lightgbm")} v${d.model_version}` },
+        { k: "Dihitung dari", v: fmt.date(d.items[0]?.origin_date) },
+        { k: "Rentang", v: `H+1 – H+${new Set(d.items.map((i) => i.horizon)).size}` },
+        { k: "Interval", v: d.interval ? `${d.interval[0]! * 100}–${d.interval[1]! * 100}%` : "–" },
+      ]
+    : [];
 
   return (
     <>
       <PageHeader
         title="Prediksi 7 hari"
-        description="Forecast indeks polutan per stasiun beserta kategori ISPU turunannya."
+        description="Perkiraan indeks polutan tiap stasiun beserta kategori ISPU turunannya, dari model forecast yang aktif."
+        meta={chips}
       />
       <QueryView
         query={fc}
-        skeleton={<Skeleton className="mb-5 h-16 w-full" />}
-        isEmpty={(d) => d.items.length === 0}
+        skeleton={<Skeleton className="h-24 w-full" />}
+        isEmpty={(x) => x.items.length === 0}
         empty={
           <EmptyState title="Belum ada forecast">
-            Model forecast belum dilatih. Jalankan training di halaman admin.
+            Model forecast belum dilatih. Jalankan training dari halaman admin.
           </EmptyState>
         }
       >
-        {(d) => (
+        {(x) => (
           <>
-            <p className="mb-3 rounded-md border border-border bg-muted p-3 text-sm">
-              Prediksi dihitung dari <strong>tanggal data terakhir</strong> tiap stasiun (
-              {fmt.date(d.items[0]?.origin_date)}), bukan dari hari ini. Model forecast v
-              {d.model_version} · dibuat {fmt.dateTime(d.generated_at)} · interval{" "}
-              {d.interval ? `${d.interval[0]! * 100}–${d.interval[1]! * 100}%` : "–"}.
-            </p>
-            <Alerts items={d.items} />
-            <Card aria-labelledby="h-grid" className="mb-5">
+            <Callout label="Catatan:">
+              prediksi dihitung dari <strong>tanggal data terakhir</strong> tiap stasiun (
+              {fmt.date(x.items[0]?.origin_date)}), bukan dari hari ini. Dibuat{" "}
+              {fmt.dateTime(x.generated_at)}.
+            </Callout>
+            <Alerts items={x.items} pollutantLabel={pollutantLabel} />
+            <Card aria-labelledby="h-grid">
               <CardHeader
                 id="h-grid"
                 title="Kategori prediksi per stasiun"
-                description="Kategori dari indeks tertinggi di antara 6 polutan yang diprediksi."
+                description="Kategori diambil dari indeks tertinggi di antara 6 polutan yang diprediksi."
               />
               <CardBody>
-                <Grid items={d.items} />
+                <Grid items={x.items} />
               </CardBody>
             </Card>
           </>
@@ -288,11 +304,20 @@ export function PrediksiView() {
         <CardHeader
           id="h-detail"
           title={`Detail ${label}`}
-          description="Garis putus-putus oranye = prediksi; pita = interval 10–90% dari residual holdout."
+          description="Pita oranye = rentang 10–90% dari selisih prediksi dan kenyataan di data uji; makin jauh harinya, makin lebar."
+          action={
+            <ChartLegend
+              items={[
+                { label: "Aktual 30 hari terakhir", color: "var(--accent)" },
+                { label: "Prediksi", color: "var(--series-2)", kind: "dash" },
+                { label: "Interval 10–90%", color: "var(--series-2)", kind: "dot" },
+              ]}
+            />
+          }
         />
         <CardBody>
-          <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex">
-            <Field label="Stasiun" htmlFor="p-station" className="lg:w-64">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex">
+            <Field label="Stasiun" htmlFor="p-station" className="lg:w-72">
               <Select
                 id="p-station"
                 value={station ?? ""}

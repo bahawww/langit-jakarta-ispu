@@ -24,18 +24,30 @@ const dateTime = new Intl.DateTimeFormat("id-ID", {
   timeZone: "Asia/Jakarta",
 });
 
+const monthYear = new Intl.DateTimeFormat("id-ID", {
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC",
+});
+
+const m3 = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+
 const dash = "–";
 
 export const fmt = {
   num: (v: number | null | undefined) => (v == null || Number.isNaN(v) ? dash : num.format(v)),
   int: (v: number | null | undefined) => (v == null ? dash : int.format(v)),
   /** precision/recall/F1: 4 desimal, sama dengan angka acuan Orange */
+  /** metrik 0–1 di kartu dan tabel evaluasi: 3 desimal (design system) */
+  m3: (v: number | null | undefined) => (v == null || Number.isNaN(v) ? dash : m3.format(v)),
   metric: (v: number | null | undefined) =>
     v == null || Number.isNaN(v) ? dash : metric.format(v),
   /** nilai indeks hasil prediksi: 1 desimal */
   idx: (v: number | null | undefined) => (v == null || Number.isNaN(v) ? dash : idx.format(v)),
   pct: (v: number | null | undefined) => (v == null || Number.isNaN(v) ? dash : pct.format(v)),
   date: (iso: string | null | undefined) => (iso ? day.format(new Date(`${iso}T00:00:00Z`)) : dash),
+  monthYear: (iso: string | null | undefined) =>
+    iso ? monthYear.format(new Date(`${iso}T00:00:00Z`)) : dash,
   dayShort: (iso: string) => dayLong.format(new Date(`${iso}T00:00:00Z`)),
   dateTime: (iso: string | null | undefined) =>
     iso ? `${dateTime.format(new Date(iso))} WIB` : dash,

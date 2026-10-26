@@ -2,17 +2,19 @@
 
 import { useMemo } from "react";
 
-import { BULAN, EChart, timeAxisLabel, useChartColors } from "@/components/chart";
+import { BULAN, ChartLegend, EChart, timeAxisLabel, useChartColors } from "@/components/chart";
 import { FilterBar } from "@/components/filter-bar";
+import { IspuLegend } from "@/components/ispu";
 import { PageHeader } from "@/components/page-header";
 import { ChartSkeleton, QueryView } from "@/components/states";
-import { ScrollX } from "@/components/ui/scroll-x";
+import { Callout } from "@/components/ui/callout";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Field, Select } from "@/components/ui/field";
+import { ScrollX } from "@/components/ui/scroll-x";
 import { useApi, type DailyPoint, type Meta, type MonthlyCount } from "@/lib/api";
 import { useFilters } from "@/lib/filters";
 import { fmt } from "@/lib/format";
-import { AMBANG, KATEGORI, KATEGORI_STYLE, kategoriStyle, severity } from "@/lib/kategori";
+import { AMBANG, KATEGORI, KATEGORI_META, isUnhealthy, severity } from "@/lib/kategori";
 
 const monthFmt = new Intl.DateTimeFormat("id-ID", {
   month: "short",
@@ -24,50 +26,63 @@ function TimeSeries({ data, label }: { data: DailyPoint[]; label: string }) {
   const c = useChartColors();
   const option = useMemo(
     () => ({
-      grid: { left: 44, right: 16, top: 60, bottom: 72 },
-      legend: { top: 0, textStyle: { color: c.text } },
-      tooltip: {
-        trigger: "axis",
-        valueFormatter: (v: number) => fmt.num(v),
-      },
+      grid: { left: 44, right: 16, top: 16, bottom: 72 },
+      tooltip: { trigger: "axis", valueFormatter: (v: number) => fmt.num(v) },
       xAxis: {
         type: "time",
-        axisLabel: { color: c.muted, hideOverlap: true, formatter: timeAxisLabel },
-        axisLine: { lineStyle: { color: c.grid } },
+        axisLabel: { color: c.muted, fontSize: 11, hideOverlap: true, formatter: timeAxisLabel },
+        axisLine: { lineStyle: { color: c.axis } },
       },
       yAxis: {
         type: "value",
         name: "Indeks ISPU",
-        nameTextStyle: { color: c.muted },
-        axisLabel: { color: c.muted },
+        nameTextStyle: { color: c.muted, fontSize: 11 },
+        axisLabel: { color: c.muted, fontSize: 11 },
         splitLine: { lineStyle: { color: c.grid } },
       },
-      dataZoom: [{ type: "inside" }, { type: "slider", bottom: 16, height: 24 }],
+      dataZoom: [
+        { type: "inside" },
+        {
+          type: "slider",
+          bottom: 12,
+          height: 24,
+          borderColor: c.border,
+          backgroundColor: c.sunken,
+          fillerColor: `${c.accent}22`,
+          handleStyle: { color: c.accent, borderColor: c.accent },
+          dataBackground: { lineStyle: { color: c.axis }, areaStyle: { color: c.track } },
+          textStyle: { color: c.muted },
+        },
+      ],
       series: [
         {
           name: `Rata-rata ${label}`,
           type: "line",
           showSymbol: false,
+          lineStyle: { width: 2.5, color: c.accent, cap: "round", join: "round" },
+          itemStyle: { color: c.accent },
           data: data.map((d) => [d.tanggal, d.avg]),
           markLine: {
             symbol: "none",
             silent: true,
-            lineStyle: { type: "dashed", color: c.muted },
+            lineStyle: { type: "dashed", color: c.axis },
             label: {
               formatter: "{b}",
               color: c.muted,
+              fontSize: 11,
               position: "insideStartTop",
-              backgroundColor: c.tooltipBg,
+              backgroundColor: c.surface,
               padding: [1, 4],
             },
             data: AMBANG.map((a) => ({ name: a.label, yAxis: a.value })),
           },
         },
         {
-          name: `Tertinggi antar-stasiun`,
+          name: "Tertinggi antar stasiun",
           type: "line",
           showSymbol: false,
-          lineStyle: { width: 1, opacity: 0.6 },
+          lineStyle: { width: 1.5, color: c.series2, cap: "round", join: "round" },
+          itemStyle: { color: c.series2 },
           data: data.map((d) => [d.tanggal, d.max]),
         },
       ],
@@ -78,36 +93,27 @@ function TimeSeries({ data, label }: { data: DailyPoint[]; label: string }) {
     <EChart
       option={option}
       height={360}
-      label={`Grafik garis harian ${label} dengan garis ambang 50 dan 100`}
+      label={`Grafik garis harian ${label} dengan garis batas Baik (50) dan Sedang (100)`}
     />
   );
 }
 
 function CalendarHeatmap({ data, years }: { data: DailyPoint[]; years: number[] }) {
   const c = useChartColors();
-  const present = KATEGORI.filter((k) => data.some((d) => d.kategori_terburuk === k));
   const option = useMemo(
     () => ({
       tooltip: {
         formatter: (p: { value: [string, number] }) =>
-          `${fmt.date(p.value[0])}<br/>${KATEGORI_STYLE[KATEGORI[p.value[1]]!].label}`,
+          `${fmt.date(p.value[0])}<br/>${KATEGORI_META[KATEGORI[p.value[1]]!].label}`,
       },
       visualMap: {
+        show: false,
         type: "piecewise",
-        orient: "horizontal",
-        left: 84,
-        top: 0,
-        itemGap: 20,
-        textStyle: { color: c.text, fontSize: 12 },
-        pieces: present.map((k) => ({
-          value: severity(k),
-          label: KATEGORI_STYLE[k].label,
-          color: KATEGORI_STYLE[k].bg,
-        })),
+        pieces: KATEGORI.map((k) => ({ value: severity(k), color: c.ispu[k] })),
       },
       calendar: years.map((y, i) => ({
         range: String(y),
-        top: 60 + i * 150,
+        top: 24 + i * 146,
         left: 84,
         right: 16,
         cellSize: ["auto", 16],
@@ -120,27 +126,28 @@ function CalendarHeatmap({ data, years }: { data: DailyPoint[]; years: number[] 
           firstDay: 1,
           fontSize: 10,
         },
-        itemStyle: { color: c.dark ? "#1b2336" : "#f8fafc", borderColor: c.grid },
-        splitLine: { lineStyle: { color: c.grid } },
+        itemStyle: { color: c.sunken, borderColor: c.surface, borderWidth: 2 },
+        splitLine: { show: false },
       })),
       series: years.map((y, i) => ({
         type: "heatmap",
         coordinateSystem: "calendar",
         calendarIndex: i,
+        itemStyle: { borderColor: c.surface, borderWidth: 2, borderRadius: 3 },
         data: data
           .filter((d) => d.tanggal.startsWith(String(y)))
           .map((d) => [d.tanggal, severity(d.kategori_terburuk)]),
       })),
     }),
-    [data, years, present, c],
+    [data, years, c],
   );
   return (
-    <ScrollX label="Konten lebar, geser horizontal">
+    <ScrollX label="Kalender kategori harian, geser ke samping jika layar sempit">
       <div className="min-w-[720px]">
         <EChart
           option={option}
-          height={50 + years.length * 150}
-          label="Kalender kategori kualitas udara harian; warna dan legenda menunjukkan kategori terburuk antar-stasiun"
+          height={24 + years.length * 146}
+          label="Kalender kategori kualitas udara harian; warna menunjukkan kategori terburuk antar-stasiun"
         />
       </div>
     </ScrollX>
@@ -152,26 +159,27 @@ function MonthlyStacked({ data }: { data: MonthlyCount[] }) {
   const present = KATEGORI.filter((k) => data.some((d) => d.counts[k]));
   const option = useMemo(
     () => ({
-      grid: { left: 44, right: 16, top: 60, bottom: 48 },
-      legend: { top: 0, textStyle: { color: c.text } },
+      grid: { left: 44, right: 16, top: 16, bottom: 48 },
       tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
       xAxis: {
         type: "category",
         data: data.map((d) => monthFmt.format(new Date(`${d.bulan}-01T00:00:00Z`))),
-        axisLabel: { color: c.muted, rotate: 45 },
+        axisLabel: { color: c.muted, fontSize: 11, rotate: 45 },
+        axisLine: { lineStyle: { color: c.axis } },
       },
       yAxis: {
         type: "value",
         name: "Hari-stasiun",
-        nameTextStyle: { color: c.muted },
-        axisLabel: { color: c.muted },
+        nameTextStyle: { color: c.muted, fontSize: 11 },
+        axisLabel: { color: c.muted, fontSize: 11 },
         splitLine: { lineStyle: { color: c.grid } },
       },
       series: present.map((k) => ({
-        name: kategoriStyle(k).label,
+        name: KATEGORI_META[k].label,
         type: "bar",
         stack: "kategori",
-        itemStyle: { color: KATEGORI_STYLE[k].bg },
+        barMaxWidth: 36,
+        itemStyle: { color: c.ispu[k], borderColor: c.surface, borderWidth: 1 },
         data: data.map((d) => d.counts[k] ?? 0),
       })),
     }),
@@ -180,8 +188,8 @@ function MonthlyStacked({ data }: { data: MonthlyCount[] }) {
   return (
     <EChart
       option={option}
-      height={360}
-      label="Diagram batang bertumpuk jumlah hari per kategori per bulan"
+      height={340}
+      label="Diagram batang bertumpuk jumlah hari-stasiun per kategori per bulan"
     />
   );
 }
@@ -194,7 +202,7 @@ export function TrenView() {
   const monthly = useApi<MonthlyCount[]>("/stats/monthly", filters);
   const options = [
     ...(meta.data?.pollutants ?? []),
-    { key: "max", label: "Indeks maks (6 polutan)" },
+    { key: "max", label: "Indeks tertinggi (6 polutan)" },
   ];
   const label = options.find((o) => o.key === pollutant)?.label ?? pollutant;
   const years = (meta.data?.years ?? []).filter(
@@ -207,7 +215,7 @@ export function TrenView() {
     <>
       <PageHeader
         title="Tren kualitas udara"
-        description="Pola harian, kalender kategori, dan komposisi bulanan."
+        description="Pola harian, kalender kategori, dan komposisi bulanan dari stasiun terpilih."
       />
       <FilterBar>
         <Field label="Polutan" htmlFor="f-pollutant" className="lg:w-56">
@@ -224,56 +232,107 @@ export function TrenView() {
           </Select>
         </Field>
       </FilterBar>
-      <div className="grid gap-5">
-        <Card aria-labelledby="h-ts">
-          <CardHeader
-            id="h-ts"
-            title={`Time series ${label}`}
-            description="Rata-rata harian antar-stasiun terpilih. Garis putus-putus = ambang ISPU 50 (BAIK) dan 100 (SEDANG). Geser atau perbesar dengan slider."
-          />
-          <CardBody>
-            <QueryView
-              query={daily}
-              skeleton={<ChartSkeleton height={360} />}
-              isEmpty={(d) => d.length === 0}
-            >
-              {(d) => <TimeSeries data={d} label={label} />}
-            </QueryView>
-          </CardBody>
-        </Card>
-        <Card aria-labelledby="h-cal">
-          <CardHeader
-            id="h-cal"
-            title="Kalender kategori harian"
-            description="Kategori terburuk (label sumber) di antara stasiun terpilih pada hari itu. Sel kosong = tidak ada data."
-          />
-          <CardBody>
-            <QueryView
-              query={daily}
-              skeleton={<ChartSkeleton height={400} />}
-              isEmpty={(d) => d.length === 0}
-            >
-              {(d) => <CalendarHeatmap data={d} years={years} />}
-            </QueryView>
-          </CardBody>
-        </Card>
-        <Card aria-labelledby="h-month">
-          <CardHeader
-            id="h-month"
-            title="Kategori per bulan"
-            description="Jumlah hari-stasiun per kategori (label sumber)."
-          />
-          <CardBody>
-            <QueryView
-              query={monthly}
-              skeleton={<ChartSkeleton height={360} />}
-              isEmpty={(d) => d.length === 0}
-            >
-              {(d) => <MonthlyStacked data={d} />}
-            </QueryView>
-          </CardBody>
-        </Card>
-      </div>
+
+      <Card aria-labelledby="h-ts">
+        <CardHeader
+          id="h-ts"
+          title={`Indeks harian ${label}`}
+          description="Rata-rata antar stasiun terpilih. Geser atau perbesar dengan slider di bawah grafik."
+          action={
+            <ChartLegend
+              items={[
+                { label: "Rata-rata", color: "var(--accent)" },
+                { label: "Tertinggi", color: "var(--series-2)" },
+                { label: "Batas 50 dan 100", color: "var(--chart-axis)", kind: "dash" },
+              ]}
+            />
+          }
+        />
+        <CardBody>
+          <QueryView
+            query={daily}
+            skeleton={<ChartSkeleton height={360} />}
+            isEmpty={(d) => d.length === 0}
+          >
+            {(d) => {
+              const over = d.filter((p) => p.avg > 100).length;
+              return (
+                <>
+                  <TimeSeries data={d} label={label} />
+                  <Callout>
+                    rata-rata harian melewati batas Sedang (100) pada {fmt.int(over)} dari{" "}
+                    {fmt.int(d.length)} hari. Garis oranye adalah stasiun dengan indeks tertinggi
+                    pada hari itu.
+                  </Callout>
+                </>
+              );
+            }}
+          </QueryView>
+        </CardBody>
+      </Card>
+
+      <Card aria-labelledby="h-cal">
+        <CardHeader
+          id="h-cal"
+          title="Kalender kategori harian"
+          description="Kategori terburuk (label sumber) di antara stasiun terpilih pada hari itu."
+          action={
+            <IspuLegend
+              only={["BAIK", "SEDANG", "TIDAK SEHAT", "SANGAT TIDAK SEHAT", "BERBAHAYA"]}
+            />
+          }
+        />
+        <CardBody>
+          <QueryView
+            query={daily}
+            skeleton={<ChartSkeleton height={340} />}
+            isEmpty={(d) => d.length === 0}
+          >
+            {(d) => (
+              <>
+                <CalendarHeatmap data={d} years={years} />
+                <Callout>
+                  sel kosong berarti tidak ada data pada hari itu, bukan udara bersih.
+                </Callout>
+              </>
+            )}
+          </QueryView>
+        </CardBody>
+      </Card>
+
+      <Card aria-labelledby="h-month">
+        <CardHeader
+          id="h-month"
+          title="Kategori per bulan"
+          description="Jumlah hari-stasiun per kategori (label sumber)."
+          action={<IspuLegend />}
+        />
+        <CardBody>
+          <QueryView
+            query={monthly}
+            skeleton={<ChartSkeleton height={340} />}
+            isEmpty={(d) => d.length === 0}
+          >
+            {(d) => {
+              const bad = (m: MonthlyCount) =>
+                Object.entries(m.counts)
+                  .filter(([k]) => isUnhealthy(k))
+                  .reduce((a, [, n]) => a + n, 0);
+              const peak = d.reduce((a, m) => (bad(m) > bad(a) ? m : a), d[0]!);
+              return (
+                <>
+                  <MonthlyStacked data={d} />
+                  <Callout>
+                    {bad(peak) > 0
+                      ? `hari Tidak Sehat atau lebih buruk paling banyak pada ${fmt.monthYear(`${peak.bulan}-01`)} (${fmt.int(bad(peak))} hari-stasiun). Tinggi batang = jumlah hari-stasiun bulan itu.`
+                      : "tidak ada hari Tidak Sehat atau lebih buruk pada rentang ini."}
+                  </Callout>
+                </>
+              );
+            }}
+          </QueryView>
+        </CardBody>
+      </Card>
     </>
   );
 }

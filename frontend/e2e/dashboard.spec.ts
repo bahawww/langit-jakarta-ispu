@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 import { horizontalOverflow } from "./helpers";
 
 const PAGES = [
-  { path: "/", h1: "Kualitas udara DKI Jakarta" },
+  { path: "/", h1: "Ringkasan kualitas udara" },
   { path: "/tren", h1: "Tren kualitas udara" },
   { path: "/stasiun", h1: "Perbandingan antar-stasiun" },
   { path: "/prediksi", h1: "Prediksi 7 hari" },
@@ -26,17 +26,51 @@ for (const p of PAGES) {
   });
 }
 
-test("ringkasan: KPI dari API dan filter stasiun mengubah angka", async ({ page, request }) => {
+test("ringkasan: kartu metrik dari API dan filter stasiun mengubah angka", async ({
+  page,
+  request,
+}) => {
+  const unhealthy = (s: { by_kategori: Record<string, number> }) =>
+    Object.entries(s.by_kategori)
+      .filter(([k]) => k !== "BAIK" && k !== "SEDANG")
+      .reduce((a, [, n]) => a + n, 0);
   const summary = await (await request.get("/api/stats/summary")).json();
-  await page.goto("/");
-  const jumlah = page.locator("p", { hasText: "Jumlah data" }).locator("..");
-  await expect(jumlah).toContainText(summary.rows.toLocaleString("id-ID"));
-
   const meta = await (await request.get("/api/meta")).json();
+  await page.goto("/");
+  // chip meta di header: jumlah seluruh data
+  await expect(page.getByRole("term").filter({ hasText: "Data" })).toBeVisible();
+  await expect(
+    page
+      .getByRole("definition")
+      .filter({ hasText: `${meta.total_rows.toLocaleString("id-ID")} hari-stasiun` }),
+  ).toBeVisible();
+
+  const card = page.locator(".ua-card", { hasText: "Hari Tidak Sehat atau lebih buruk" });
+  await expect(card).toContainText(unhealthy(summary).toLocaleString("id-ID"));
+
   const st = meta.stations[0];
+  const one = await (await request.get(`/api/stats/summary?station=${st.code}`)).json();
   await page.getByLabel("Stasiun", { exact: true }).selectOption(st.code);
   await expect(page).toHaveURL(new RegExp(`station=${st.code}`));
-  await expect(jumlah).toContainText(st.rows.toLocaleString("id-ID"));
+  await expect(card).toContainText(unhealthy(one).toLocaleString("id-ID"));
+});
+
+test("ringkasan: kesimpulan singkat dihitung dari data, bukan teks tetap", async ({
+  page,
+  request,
+}) => {
+  const summary = await (await request.get("/api/stats/summary")).json();
+  await page.goto("/");
+  const hero = page.getByRole("region", { name: "Kesimpulan singkat" });
+  const pct = new Intl.NumberFormat("id-ID", {
+    style: "percent",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(summary.pct_tidak_sehat);
+  await expect(hero).toContainText(pct);
+  await expect(page.getByRole("region", { name: "Skala ISPU" })).toContainText(
+    "Sangat Tidak Sehat",
+  );
 });
 
 test("tanggal: preset, kalender, batas data, Esc, dan reset", async ({ page, request }) => {
@@ -112,6 +146,6 @@ test("data: cari, badge label tidak konsisten, dan ekspor CSV", async ({ page })
 test("tema gelap bisa diaktifkan", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/");
-  await page.getByRole("button", { name: "Gunakan tema gelap" }).click();
-  await expect(page.locator("html")).toHaveClass(/dark/);
+  await page.getByRole("button", { name: "Ganti ke mode gelap" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 });

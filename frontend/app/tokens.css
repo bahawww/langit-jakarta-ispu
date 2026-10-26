@@ -1,0 +1,153 @@
+/* Udara Jakarta — dibuat dari design/tokens.json oleh scripts/gen-tokens.mjs. Jangan diedit langsung. */
+
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --surface-sunken: #eef1f8;
+  --border: #e6e8f0;
+  --border-soft: #f0f1f6;
+  --text: #0f1222;
+  --text-secondary: #3e4258;
+  --text-muted: #5e6278;
+  --brand: #151a3d;
+  --on-brand: #ffffff;
+  --accent: #3b4fd8;
+  --series-2: #e8690f;
+  --track: #eef0f6;
+  --chart-grid: #eef0f6;
+  --chart-axis: #c3c7d6;
+  --success-bg: #e2f5ec;
+  --success-fg: #0b6e4b;
+  --warning-bg: #fff4e8;
+  --warning-fg: #8a4100;
+  --ispu-baik: #2e9e5b;
+  --ispu-sedang: #2f6fd6;
+  --ispu-tidak-sehat: #e8b20c;
+  --ispu-sangat-tidak-sehat: #d93434;
+  --ispu-berbahaya: #1b1b1f;
+  --ispu-baik-bg: #e3f4ea;
+  --ispu-baik-fg: #1c6e3f;
+  --ispu-sedang-bg: #e6eefb;
+  --ispu-sedang-fg: #1f4f9e;
+  --ispu-tidak-sehat-bg: #fbf1cf;
+  --ispu-tidak-sehat-fg: #6e5100;
+  --ispu-sangat-tidak-sehat-bg: #fde8e8;
+  --ispu-sangat-tidak-sehat-fg: #a3262a;
+  --ispu-berbahaya-bg: #1b1b1f;
+  --ispu-berbahaya-fg: #ffffff;
+  --shadow-card: 0 1px 2px rgba(15, 18, 34, 0.04);
+  --shadow-raised: 0 1px 3px rgba(15, 18, 34, 0.12);
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b0d17;
+  --surface: #141726;
+  --surface-sunken: #1f2335;
+  --border: #262a3d;
+  --border-soft: #1e2234;
+  --text: #f2f3f8;
+  --text-secondary: #c9ccda;
+  --text-muted: #9da1b6;
+  --brand: #1e2550;
+  --on-brand: #ffffff;
+  --accent: #8c9bff;
+  --series-2: #ff9a52;
+  --track: #23273a;
+  --chart-grid: #20243a;
+  --chart-axis: #4a4f66;
+  --success-bg: #10291f;
+  --success-fg: #6ee7b7;
+  --warning-bg: #2b1e10;
+  --warning-fg: #ffb86b;
+  --ispu-baik: #2e9e5b;
+  --ispu-sedang: #2f6fd6;
+  --ispu-tidak-sehat: #e8b20c;
+  --ispu-sangat-tidak-sehat: #d93434;
+  --ispu-berbahaya: #6e6e7a;
+  --ispu-baik-bg: #12301f;
+  --ispu-baik-fg: #7fe0a6;
+  --ispu-sedang-bg: #13274a;
+  --ispu-sedang-fg: #9cc0ff;
+  --ispu-tidak-sehat-bg: #3a2e08;
+  --ispu-tidak-sehat-fg: #f5d25a;
+  --ispu-sangat-tidak-sehat-bg: #3d1517;
+  --ispu-sangat-tidak-sehat-fg: #ff9c9c;
+  --ispu-berbahaya-bg: #26262e;
+  --ispu-berbahaya-fg: #e4e4ea;
+  --shadow-card: none;
+  --shadow-raised: none;
+}
+
+.ua-t-display {
+  font-size: 40px;
+  line-height: 44px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.ua-t-heading-1 {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.ua-t-heading-2 {
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.ua-t-heading-3 {
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 700;
+}
+
+.ua-t-stat {
+  font-size: 30px;
+  line-height: 34px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.ua-t-stat-sm {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 800;
+}
+
+.ua-t-body {
+  font-size: 15px;
+  line-height: 24px;
+  font-weight: 400;
+}
+
+.ua-t-body-sm {
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+.ua-t-label {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+}

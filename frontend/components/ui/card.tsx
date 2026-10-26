@@ -2,16 +2,9 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+/** Kartu design system: surface + border 1px + radius-lg + padding 24px, isi tersusun vertikal. */
 export function Card({ className, ...props }: React.HTMLAttributes<HTMLElement>) {
-  return (
-    <section
-      className={cn(
-        "min-w-0 rounded-lg border border-border bg-card text-card-foreground",
-        className,
-      )}
-      {...props}
-    />
-  );
+  return <section className={cn("ua-card min-w-0", className)} {...props} />;
 }
 
 export function CardHeader({
@@ -26,12 +19,12 @@ export function CardHeader({
   id?: string;
 }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-3 px-4 pt-4">
+    <div className="ua-card__head">
       <div className="min-w-0">
-        <h2 id={id} className="text-base font-semibold text-balance">
+        <h2 id={id} className="ua-card__title text-balance">
           {title}
         </h2>
-        {description ? <p className="mt-0.5 text-sm text-muted-foreground">{description}</p> : null}
+        {description ? <p className="ua-card__sub mt-0.5">{description}</p> : null}
       </div>
       {action}
     </div>
@@ -39,5 +32,7 @@ export function CardHeader({
 }
 
 export function CardBody({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("p-4", className)} {...props} />;
+  return (
+    <div className={cn("grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4", className)} {...props} />
+  );
 }

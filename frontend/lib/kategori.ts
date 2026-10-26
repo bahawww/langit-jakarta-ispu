@@ -1,6 +1,5 @@
-// Satu sumber warna kategori ISPU untuk badge, tabel, dan chart.
-// Palet resmi ISPU (PermenLHK P.14/2020): Baik hijau, Sedang biru, Tidak Sehat kuning,
-// Sangat Tidak Sehat merah, Berbahaya hitam. Pasangan latar/teks dipilih agar kontras >= 4.5:1.
+// Kategori ISPU menurut Permen LHK No. 14/2020. Warna ada di token CSS (--ispu-*), bukan di sini:
+// komponen memakai kelas `ua-badge--*` / `var(--ispu-*)`, grafik membaca token lewat useChartColors().
 export const KATEGORI = [
   "BAIK",
   "SEDANG",
@@ -10,27 +9,51 @@ export const KATEGORI = [
 ] as const;
 export type Kategori = (typeof KATEGORI)[number];
 
-export const KATEGORI_STYLE: Record<Kategori, { bg: string; fg: string; label: string }> = {
-  BAIK: { bg: "#15803d", fg: "#ffffff", label: "Baik" },
-  SEDANG: { bg: "#1d4ed8", fg: "#ffffff", label: "Sedang" },
-  "TIDAK SEHAT": { bg: "#facc15", fg: "#422006", label: "Tidak sehat" },
-  "SANGAT TIDAK SEHAT": { bg: "#dc2626", fg: "#ffffff", label: "Sangat tidak sehat" },
-  BERBAHAYA: { bg: "#0a0a0a", fg: "#ffffff", label: "Berbahaya" },
+export const KATEGORI_META: Record<
+  Kategori,
+  { label: string; range: string; badge: string; token: string }
+> = {
+  BAIK: { label: "Baik", range: "0–50", badge: "ua-badge--baik", token: "--ispu-baik" },
+  SEDANG: { label: "Sedang", range: "51–100", badge: "ua-badge--sedang", token: "--ispu-sedang" },
+  "TIDAK SEHAT": {
+    label: "Tidak Sehat",
+    range: "101–200",
+    badge: "ua-badge--tidak-sehat",
+    token: "--ispu-tidak-sehat",
+  },
+  "SANGAT TIDAK SEHAT": {
+    label: "Sangat Tidak Sehat",
+    range: "201–300",
+    badge: "ua-badge--sangat-tidak-sehat",
+    token: "--ispu-sangat-tidak-sehat",
+  },
+  BERBAHAYA: {
+    label: "Berbahaya",
+    range: "> 300",
+    badge: "ua-badge--berbahaya",
+    token: "--ispu-berbahaya",
+  },
 };
 
 export const AMBANG = [
-  { value: 50, label: "Batas BAIK (50)" },
-  { value: 100, label: "Batas SEDANG (100)" },
+  { value: 50, label: "Batas Baik (50)" },
+  { value: 100, label: "Batas Sedang (100)" },
 ];
 
 export function isKategori(v: string): v is Kategori {
   return (KATEGORI as readonly string[]).includes(v);
 }
 
-export function kategoriStyle(v: string) {
-  return isKategori(v) ? KATEGORI_STYLE[v] : { bg: "#64748b", fg: "#ffffff", label: v };
+export function kategoriMeta(v: string) {
+  return isKategori(v)
+    ? KATEGORI_META[v]
+    : { label: v, range: "", badge: "ua-badge--neutral", token: "--text-muted" };
 }
 
 export function severity(v: string): number {
   return isKategori(v) ? KATEGORI.indexOf(v) : -1;
 }
+
+/** Hari dengan kategori Tidak Sehat atau lebih buruk. */
+export const UNHEALTHY_FROM = KATEGORI.indexOf("TIDAK SEHAT");
+export const isUnhealthy = (v: string) => severity(v) >= UNHEALTHY_FROM;

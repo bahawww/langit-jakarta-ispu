@@ -13,8 +13,9 @@ import {
 } from "echarts/components";
 import * as echarts from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import { useTheme } from "next-themes";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
+
+import { KATEGORI, KATEGORI_META, type Kategori } from "@/lib/kategori";
 
 echarts.use([
   BarChart,
@@ -33,20 +34,87 @@ echarts.use([
 
 export type ChartOption = echarts.EChartsCoreOption;
 
-export function useChartColors() {
-  const { resolvedTheme } = useTheme();
-  const dark = resolvedTheme === "dark";
+export type ChartColors = {
+  text: string;
+  secondary: string;
+  muted: string;
+  grid: string;
+  axis: string;
+  surface: string;
+  sunken: string;
+  border: string;
+  accent: string;
+  series2: string;
+  track: string;
+  ispu: Record<Kategori, string>;
+};
+
+// Hanya dipakai saat render di server (tema terang); di browser nilai dibaca dari token CSS.
+const SSR_COLORS: ChartColors = {
+  text: "#0F1222",
+  secondary: "#3E4258",
+  muted: "#5E6278",
+  grid: "#EEF0F6",
+  axis: "#C3C7D6",
+  surface: "#FFFFFF",
+  sunken: "#EEF1F8",
+  border: "#E6E8F0",
+  accent: "#3B4FD8",
+  series2: "#E8690F",
+  track: "#EEF0F6",
+  ispu: {
+    BAIK: "#2E9E5B",
+    SEDANG: "#2F6FD6",
+    "TIDAK SEHAT": "#E8B20C",
+    "SANGAT TIDAK SEHAT": "#D93434",
+    BERBAHAYA: "#1B1B1F",
+  },
+};
+
+function readColors(): ChartColors {
+  if (typeof document === "undefined") return SSR_COLORS;
+  const cs = getComputedStyle(document.documentElement);
+  const v = (name: string) => cs.getPropertyValue(name).trim();
   return {
-    dark,
-    text: dark ? "#e2e8f0" : "#0f172a",
-    muted: dark ? "#a3b1c6" : "#475569",
-    grid: dark ? "#334155" : "#e2e8f0",
-    tooltipBg: dark ? "#1b2336" : "#ffffff",
-    // Sengaja bukan hijau/biru/kuning/merah/hitam agar tidak tertukar dengan warna kategori ISPU.
-    series: dark
-      ? ["#a78bfa", "#fb923c", "#2dd4bf", "#f472b6", "#94a3b8", "#22d3ee"]
-      : ["#6d28d9", "#c2410c", "#0f766e", "#be185d", "#475569", "#0e7490"],
+    text: v("--text"),
+    secondary: v("--text-secondary"),
+    muted: v("--text-muted"),
+    grid: v("--chart-grid"),
+    axis: v("--chart-axis"),
+    surface: v("--surface"),
+    sunken: v("--surface-sunken"),
+    border: v("--border"),
+    accent: v("--accent"),
+    series2: v("--series-2"),
+    track: v("--track"),
+    ispu: Object.fromEntries(KATEGORI.map((k) => [k, v(KATEGORI_META[k].token)])) as Record<
+      Kategori,
+      string
+    >,
   };
+}
+
+// Tema berganti lewat atribut data-theme di <html>. Warna dibaca dari token CSS setelah atribut itu
+// berubah (membaca saat render kalah cepat dari next-themes) dan di-cache per tema, supaya snapshot
+// useSyncExternalStore stabil.
+const cache = new Map<string, ChartColors>();
+function subscribeTheme(cb: () => void) {
+  const mo = new MutationObserver(cb);
+  mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  return () => mo.disconnect();
+}
+function colorsSnapshot(): ChartColors {
+  const theme = document.documentElement.dataset.theme ?? "light";
+  let colors = cache.get(theme);
+  if (!colors) {
+    colors = readColors();
+    cache.set(theme, colors);
+  }
+  return colors;
+}
+
+export function useChartColors(): ChartColors {
+  return useSyncExternalStore(subscribeTheme, colorsSnapshot, () => SSR_COLORS);
 }
 
 /** Pembungkus ECharts: resize otomatis, dispose saat unmount, dan label aksesibel. */
@@ -81,12 +149,14 @@ export function EChart({
       {
         aria: { enabled: true, label: { description: label } },
         textStyle: { color: c.text, fontFamily: "inherit" },
-        color: c.series,
+        // Seri pertama = accent, kedua = series-2 (aturan design system: maksimal 2 seri model).
+        color: [c.accent, c.series2],
         animationDuration: 300,
         tooltip: {
-          backgroundColor: c.tooltipBg,
-          borderColor: c.grid,
-          textStyle: { color: c.text },
+          backgroundColor: c.surface,
+          borderColor: c.border,
+          textStyle: { color: c.text, fontSize: 13 },
+          extraCssText: "border-radius:12px;box-shadow:none;",
         },
         ...option,
       },
@@ -109,4 +179,30 @@ export function timeAxisLabel(value: number) {
   const d = new Date(value);
   if (d.getMonth() === 0 && d.getDate() === 1) return String(d.getFullYear());
   return `${d.getDate() === 1 ? "" : `${d.getDate()} `}${BULAN[d.getMonth()]}`;
+}
+
+export function ChartLegend({
+  items,
+}: {
+  items: { label: string; color: string; kind?: "line" | "dash" | "dot" }[];
+}) {
+  return (
+    <div className="ua-legend" aria-label="Legenda grafik" role="group">
+      {items.map((i) => (
+        <span key={i.label} style={{ color: "var(--text)" }}>
+          {i.kind === "dot" ? (
+            <span className="ua-dot" style={{ background: i.color }} />
+          ) : (
+            <span
+              className={
+                i.kind === "dash" ? "ua-legend__line ua-legend__line--dashed" : "ua-legend__line"
+              }
+              style={i.kind === "dash" ? { color: i.color } : { background: i.color }}
+            />
+          )}
+          {i.label}
+        </span>
+      ))}
+    </div>
+  );
 }

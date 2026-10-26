@@ -19,7 +19,7 @@ export function FilterBar({
   const m = meta.data;
   const active = Boolean(filters.station || filters.start || filters.end);
   return (
-    <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-end">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-end">
       <Field label="Stasiun" htmlFor="f-station" className="lg:w-64">
         <Select
           id="f-station"

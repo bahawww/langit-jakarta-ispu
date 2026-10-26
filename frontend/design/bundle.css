@@ -1,0 +1,286 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+
+/* Udara Jakarta — komponen sebagai kelas CSS. Butuh tokens.css. */
+
+.ua-root {
+  font-family: var(--font-sans);
+  color: var(--text);
+  background: var(--bg);
+  font-variant-numeric: tabular-nums;
+}
+.ua-root :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Button */
+.ua-btn {
+  font-family: var(--font-sans);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+}
+.ua-btn--primary {
+  background: var(--brand);
+  color: var(--on-brand);
+}
+.ua-btn--primary:hover {
+  background: var(--accent);
+}
+.ua-btn--secondary {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+.ua-btn--secondary:hover {
+  background: var(--surface-sunken);
+}
+.ua-btn--ghost {
+  background: transparent;
+  color: var(--text-muted);
+}
+.ua-btn--ghost:hover {
+  background: var(--surface-sunken);
+  color: var(--text);
+}
+.ua-btn--icon {
+  width: 44px;
+  padding: 0;
+}
+.ua-btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Card + StatCard */
+.ua-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.ua-card__title {
+  margin: 0;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 700;
+}
+.ua-card__sub {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+}
+.ua-stat__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+.ua-stat__label {
+  font-size: 14px;
+  font-weight: 700;
+}
+.ua-stat__help {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-muted);
+  margin-top: -8px;
+}
+.ua-stat__pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+.ua-stat__who {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.ua-stat__value {
+  display: block;
+  font-size: 30px;
+  line-height: 34px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.ua-stat__value--dim {
+  color: var(--text-muted);
+}
+.ua-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  display: inline-block;
+  flex: none;
+}
+.ua-dot--a {
+  background: var(--accent);
+}
+.ua-dot--b {
+  background: var(--series-2);
+}
+.ua-bar {
+  height: 6px;
+  background: var(--track);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+.ua-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+/* Badge (umum + ISPU) */
+.ua-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.ua-badge--success {
+  background: var(--success-bg);
+  color: var(--success-fg);
+}
+.ua-badge--warning {
+  background: var(--warning-bg);
+  color: var(--warning-fg);
+}
+.ua-badge--baik {
+  background: var(--ispu-baik-bg);
+  color: var(--ispu-baik-fg);
+}
+.ua-badge--sedang {
+  background: var(--ispu-sedang-bg);
+  color: var(--ispu-sedang-fg);
+}
+.ua-badge--tidak-sehat {
+  background: var(--ispu-tidak-sehat-bg);
+  color: var(--ispu-tidak-sehat-fg);
+}
+.ua-badge--sangat-tidak-sehat {
+  background: var(--ispu-sangat-tidak-sehat-bg);
+  color: var(--ispu-sangat-tidak-sehat-fg);
+}
+.ua-badge--berbahaya {
+  background: var(--ispu-berbahaya-bg);
+  color: var(--ispu-berbahaya-fg);
+}
+.ua-badge--baik::before,
+.ua-badge--sedang::before,
+.ua-badge--tidak-sehat::before,
+.ua-badge--sangat-tidak-sehat::before,
+.ua-badge--berbahaya::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* SegmentedControl */
+.ua-segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  background: var(--surface-sunken);
+  border-radius: 14px;
+}
+.ua-segmented button {
+  font-family: var(--font-sans);
+  border: 0;
+  cursor: pointer;
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border-radius: 11px;
+  font-size: 14px;
+  font-weight: 700;
+  background: transparent;
+  color: var(--text-muted);
+}
+.ua-segmented button[aria-pressed="true"] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-raised);
+}
+.ua-segmented button:hover:not([aria-pressed="true"]) {
+  color: var(--text);
+}
+
+/* DataTable */
+.ua-table-wrap {
+  overflow-x: auto;
+}
+.ua-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.ua-table th[scope="col"] {
+  text-align: right;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 10px var(--space-3);
+  border-bottom: 1px solid var(--border);
+}
+.ua-table th[scope="col"]:first-child {
+  text-align: left;
+}
+.ua-table th[scope="row"] {
+  text-align: left;
+  font-weight: 600;
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--border-soft);
+}
+.ua-table td {
+  text-align: right;
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--border-soft);
+}
+.ua-table .ua-best {
+  display: inline-block;
+  padding: 4px 10px;
+  margin: -4px -10px;
+  border-radius: var(--radius-sm);
+  font-weight: 800;
+  background: var(--surface-sunken);
+}
+
+/* Callout */
+.ua-callout {
+  border-radius: var(--radius-md);
+  padding: var(--space-3) 14px;
+  font-size: 13px;
+  line-height: 1.55;
+  background: var(--warning-bg);
+  color: var(--text-secondary);
+}
+.ua-callout strong {
+  color: var(--warning-fg);
+  font-weight: 700;
+}
