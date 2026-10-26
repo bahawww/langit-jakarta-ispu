@@ -89,3 +89,66 @@ class OrangeBaseline(_PollutantColumns, Base):
     pred_knn: Mapped[str] = mapped_column(String(32))
 
     station: Mapped[Station] = relationship(lazy="joined")
+
+
+class TrainingRun(Base):
+    __tablename__ = "training_runs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    trigger: Mapped[str] = mapped_column(
+        String(16)
+    )  # initial | ingest | schedule | manual | rollback
+    status: Mapped[str] = mapped_column(String(16))  # running | success | skipped | failed
+    upload_id: Mapped[int | None] = mapped_column(ForeignKey("uploads.id"))
+    snapshot_hash: Mapped[str | None] = mapped_column(String(64))
+    message: Mapped[str | None] = mapped_column(String(2000))
+    details: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
+
+
+class ModelVersion(Base):
+    __tablename__ = "model_versions"
+    __table_args__ = (UniqueConstraint("task", "version"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    task: Mapped[str] = mapped_column(String(16))  # classification | forecast
+    version: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    promoted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    status: Mapped[str] = mapped_column(String(16))  # champion | archived | rejected
+    algorithm: Mapped[str] = mapped_column(String(64))
+    ml_version: Mapped[str] = mapped_column(String(16))
+    train_start: Mapped[date] = mapped_column(Date)
+    train_end: Mapped[date] = mapped_column(Date)  # cutoff model eval
+    data_end: Mapped[date] = mapped_column(Date)  # model serve dilatih sampai sini
+    n_rows: Mapped[int] = mapped_column(Integer)
+    primary_metric: Mapped[str] = mapped_column(String(32))
+    primary_value: Mapped[float]
+    metrics: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    params: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    artifact_dir: Mapped[str] = mapped_column(String(500))
+    snapshot_hash: Mapped[str] = mapped_column(String(64))
+    training_run_id: Mapped[int | None] = mapped_column(ForeignKey("training_runs.id"))
+
+
+class Forecast(Base):
+    """Forecast terbaru dari champion; diganti seluruhnya setiap kali dibuat ulang."""
+
+    __tablename__ = "forecasts"
+    __table_args__ = (UniqueConstraint("station_id", "target_date"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    model_version_id: Mapped[int] = mapped_column(ForeignKey("model_versions.id"))
+    station_id: Mapped[int] = mapped_column(ForeignKey("stations.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    origin_date: Mapped[date] = mapped_column(Date)
+    target_date: Mapped[date] = mapped_column(Date)
+    horizon: Mapped[int] = mapped_column(SmallInteger)
+    values: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    max_yhat: Mapped[float]
+    critical: Mapped[str] = mapped_column(String(32))
+    kategori: Mapped[str] = mapped_column(String(32))
+    kategori_upper: Mapped[str] = mapped_column(String(32))
+
+    station: Mapped[Station] = relationship(lazy="joined")

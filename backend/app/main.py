@@ -5,6 +5,7 @@ import uuid
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
+from app.api import ml_routes
 from app.api.routes import router
 from app.logging_setup import setup_logging
 
@@ -18,6 +19,7 @@ app = FastAPI(
     openapi_url="/api/openapi.json",
 )
 app.include_router(router)
+app.include_router(ml_routes.router)
 
 
 @app.middleware("http")

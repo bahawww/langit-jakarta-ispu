@@ -1,19 +1,26 @@
 name: ispu
 
-x-seed-files: &seed-files
-  # CSV asli di root repo dipasang read-only; aplikasi tidak pernah menulis ke file ini.
-  - type: bind
-    source: ../Dataset_ISPU_DKI_Jakarta_2024_2025_Clean.csv
-    target: /seed/clean.csv
-    read_only: true
-  - type: bind
-    source: ../Hasil_Testing_80_20_ISPU_DKI_Jakarta.csv
-    target: /seed/orange_test.csv
-    read_only: true
-  - type: bind
-    source: "../Filedata Data Indeks Standar Pencemar Udara ISPU di Provinsi DKI Jakarta.csv"
-    target: /seed/raw.csv
-    read_only: true
+# CSV asli di root repo dipasang read-only; aplikasi tidak pernah menulis ke file ini.
+x-seed-clean: &seed-clean
+  type: bind
+  source: ../Dataset_ISPU_DKI_Jakarta_2024_2025_Clean.csv
+  target: /seed/clean.csv
+  read_only: true
+x-seed-orange: &seed-orange
+  type: bind
+  source: ../Hasil_Testing_80_20_ISPU_DKI_Jakarta.csv
+  target: /seed/orange_test.csv
+  read_only: true
+x-seed-raw: &seed-raw
+  type: bind
+  source: "../Filedata Data Indeks Standar Pencemar Udara ISPU di Provinsi DKI Jakarta.csv"
+  target: /seed/raw.csv
+  read_only: true
+
+x-backend-env: &backend-env
+  DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-ispu}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ispu}
+  REDIS_URL: redis://redis:6379/0
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
 
 services:
   postgres:
@@ -38,12 +45,16 @@ services:
     # Di VPS ini build lewat deploy/build.sh (--network host): bridge BuildKit ~60 KB/s ke PyPI.
     image: ispu-backend:latest
     restart: unless-stopped
-    environment:
-      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-ispu}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ispu}
-      LOG_LEVEL: ${LOG_LEVEL:-INFO}
-    volumes: *seed-files
+    environment: *backend-env
+    volumes:
+      - *seed-clean
+      - *seed-orange
+      - *seed-raw
+      - artifacts:/artifacts
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3)"]
@@ -51,6 +62,58 @@ services:
       timeout: 5s
       start_period: 30s
       retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "60", "1", "--appendonly", "no"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  worker:
+    image: ispu-backend:latest
+    restart: unless-stopped
+    command: ["celery", "-A", "app.worker", "worker", "--concurrency", "1", "--loglevel", "INFO"]
+    environment:
+      <<: *backend-env
+      RUN_MIGRATIONS: "0"
+    volumes:
+      - artifacts:/artifacts
+    depends_on:
+      api:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A app.worker inspect ping -d celery@$$HOSTNAME --timeout 5 | grep -q pong"]
+      interval: 30s
+      timeout: 20s
+      start_period: 30s
+      retries: 3
+
+  beat:
+    image: ispu-backend:latest
+    restart: unless-stopped
+    command: ["celery", "-A", "app.worker", "beat", "--loglevel", "INFO", "--schedule", "/tmp/celerybeat-schedule"]
+    environment:
+      <<: *backend-env
+      RUN_MIGRATIONS: "0"
+    depends_on:
+      redis:
+        condition: service_healthy
+      worker:
+        condition: service_started
+    healthcheck:
+      # beat hanya butuh broker; pastikan Redis terjangkau dari container ini
+      test: ["CMD", "python", "-c", "import os, redis; redis.Redis.from_url(os.environ['REDIS_URL']).ping()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   caddy:
     image: caddy:2-alpine
@@ -72,4 +135,6 @@ services:
 
 volumes:
   pgdata:
+  redisdata:
+  artifacts:
   caddy_data:

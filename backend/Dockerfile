@@ -11,10 +11,12 @@ COPY backend/requirements.lock ./
 # pisahkan ke stage build terpisah jika ukuran image jadi masalah.
 RUN pip install --no-cache-dir -r requirements.lock
 
+COPY ml/ /ml/
 COPY backend/ ./
-RUN chmod +x entrypoint.sh
+# /artifacts dimiliki user app agar volume bernama mewarisi izin ini saat dibuat
+RUN chmod +x entrypoint.sh && mkdir -p /artifacts && chown app /artifacts
 USER app
-ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/app:/ml
 EXPOSE 8000
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]

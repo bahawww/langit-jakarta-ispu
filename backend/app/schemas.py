@@ -1,4 +1,5 @@
-from datetime import date
+from datetime import date, datetime
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -83,3 +84,65 @@ class OrangeBaselineOut(BaseModel):
     avg_pm_sepuluh: float | None
     label_inconsistent: int
     models: list[ModelEval]
+
+
+class ModelVersionOut(BaseModel):
+    id: int
+    task: str
+    version: int
+    status: str
+    algorithm: str
+    ml_version: str
+    created_at: datetime
+    promoted_at: datetime | None
+    train_start: date
+    train_end: date
+    data_end: date
+    n_rows: int
+    primary_metric: str
+    primary_value: float
+    snapshot_hash: str
+    training_run_id: int | None
+    params: dict[str, Any]
+    metrics: dict[str, Any] | None = None
+
+
+class TrainingRunOut(BaseModel):
+    id: int
+    created_at: datetime
+    finished_at: datetime | None
+    trigger: str
+    status: str
+    upload_id: int | None
+    snapshot_hash: str | None
+    message: str | None
+    details: dict[str, Any]
+
+
+class PollutantForecast(BaseModel):
+    yhat: float
+    lo: float
+    hi: float
+
+
+class ForecastDay(BaseModel):
+    station_code: str
+    station_name: str
+    origin_date: date
+    target_date: date
+    horizon: int
+    kategori: str
+    kategori_upper: str
+    critical: str
+    max_yhat: float
+    alert: bool
+    alert_possible: bool
+    values: dict[str, PollutantForecast]
+
+
+class ForecastOut(BaseModel):
+    model_version_id: int | None
+    model_version: int | None
+    generated_at: datetime | None
+    interval: list[float] | None
+    items: list[ForecastDay]
