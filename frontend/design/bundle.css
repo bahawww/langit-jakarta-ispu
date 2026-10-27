@@ -130,36 +130,33 @@
 
 /* Ilustrasi */
 .ua-ill { display: block; width: 100%; height: auto; overflow: hidden; }
-.ua-ill .ua-l { fill: var(--bg); stroke: var(--ill-line); stroke-width: 1.25; stroke-linejoin: round; }
-.ua-ill .ua-stroke { fill: none; stroke: var(--ill-line); stroke-width: 1.25; stroke-linecap: round; }
-.ua-ill .ua-haze-lines { stroke: var(--ill-haze); stroke-width: 1.5; stroke-linecap: round; stroke-dasharray: 1 9; }
+.ua-ill .ua-l { fill: var(--bg); stroke: var(--ill-line); stroke-width: 1.1; stroke-linejoin: round; }
+.ua-ill .ua-stroke { fill: none; stroke: var(--ill-line); stroke-width: 1.1; stroke-linecap: round; }
+.ua-ill .ua-haze-lines { stroke: var(--ill-haze); stroke-width: 1.5; stroke-linecap: round; stroke-dasharray: 1 11; }
 .ua-ill .ua-gold { fill: var(--ill-flame); }
 
 /* Gerak */
-@keyframes ua-drift { from { transform: translateX(0); } to { transform: translateX(-10px); } }
+@keyframes ua-drift { from { transform: translateX(0); } to { transform: translateX(-12px); } }
 @keyframes ua-float { 0% { transform: translateX(0); } 50% { transform: translateX(40px); } 100% { transform: translateX(0); } }
 @keyframes ua-drive { from { transform: translateX(-140px); } to { transform: translateX(1260px); } }
-@keyframes ua-drive-back { from { transform: translateX(1240px); } to { transform: translateX(-80px); } }
-@keyframes ua-flicker { 0% { transform: scale(1, 1); } 35% { transform: scale(0.94, 1.08); } 70% { transform: scale(1.05, 0.95); } 100% { transform: scale(1, 1.04); } }
-@keyframes ua-pulse { 0% { transform: scale(0.5); opacity: 0.9; } 100% { transform: scale(2.2); opacity: 0; } }
-@keyframes ua-fly { 0% { transform: translate(0, 0); } 50% { transform: translate(60px, -8px); } 100% { transform: translate(120px, 0); } }
+@keyframes ua-flicker { 0% { transform: scale(1, 1); } 50% { transform: scale(0.97, 1.04); } 100% { transform: scale(1.02, 0.98); } }
+@keyframes ua-pulse { 0% { transform: scale(0.6); opacity: 0.6; } 100% { transform: scale(2); opacity: 0; } }
+@keyframes ua-fly { 0% { transform: translate(0, 0); } 50% { transform: translate(40px, -5px); } 100% { transform: translate(80px, 0); } }
 @keyframes ua-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes ua-rise { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { transform: translateY(-46px); opacity: 0; } }
-@keyframes ua-sway { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
+@keyframes ua-train { from { transform: translateX(1220px); } to { transform: translateX(-180px); } }
 
-.ua-anim-haze { animation: ua-drift 2.4s linear infinite; }
-.ua-anim-cloud { animation: ua-float 38s ease-in-out infinite; }
-.ua-anim-cloud-slow { animation: ua-float 52s ease-in-out infinite reverse; }
-.ua-anim-birds { animation: ua-fly 18s ease-in-out infinite alternate; }
-.ua-anim-bus { animation: ua-drive 22s linear infinite; }
-.ua-anim-bajaj { animation: ua-drive-back 15s linear infinite; }
-.ua-anim-flame { transform-box: fill-box; transform-origin: 50% 100%; animation: ua-flicker 1.4s ease-in-out infinite alternate; }
-.ua-anim-pulse { transform-box: fill-box; transform-origin: 50% 50%; animation: ua-pulse 2.2s ease-out infinite; }
+.ua-anim-haze { animation: ua-drift 14s linear infinite; }
+.ua-anim-cloud { animation: ua-float 110s ease-in-out infinite; }
+.ua-anim-cloud-slow { animation: ua-float 150s ease-in-out infinite reverse; }
+.ua-anim-birds { animation: ua-fly 40s ease-in-out infinite alternate; }
+.ua-anim-bus { animation: ua-drive 55s linear infinite; }
+.ua-anim-flame { transform-box: fill-box; transform-origin: 50% 100%; animation: ua-flicker 3.2s ease-in-out infinite alternate; }
+.ua-anim-pulse { transform-box: fill-box; transform-origin: 50% 50%; animation: ua-pulse 3.6s ease-out infinite; }
 .ua-anim-grow { transform-box: fill-box; transform-origin: 0 50%; animation: ua-grow 900ms var(--ua-spring) both; }
 .ua-bar > span.ua-anim-grow { transform-origin: 0 50%; }
 .ua-anim-rise { animation: ua-rise 6s ease-in-out infinite; }
-.ua-anim-sway { transform-box: fill-box; transform-origin: 50% 100%; animation: ua-sway 2.6s ease-in-out infinite alternate; }
-.ua-anim-sway-late { transform-box: fill-box; transform-origin: 50% 100%; animation: ua-sway 2.6s ease-in-out -1.3s infinite alternate; }
+.ua-anim-train { animation: ua-train 48s linear infinite; }
 
 /* Transisi antarhalaman dan antartampilan */
 :root {
@@ -213,6 +210,6 @@
   .ua-btn:active, .ua-tabs button:active { transform: none; }
   [class*="ua-anim-"] { animation: none !important; }
   .ua-anim-bus { transform: translateX(640px); }
-  .ua-anim-bajaj { transform: translateX(860px); }
   .ua-anim-pulse { opacity: 0; }
+  .ua-anim-train { transform: translateX(420px); }
 }

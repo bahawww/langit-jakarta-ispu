@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useState, useSyncExternalStore } from "react";
 
-import { OndelOndel } from "@/components/illustrations";
 import { Button } from "@/components/ui/button";
 import { useApi, type Meta } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -128,29 +127,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       <footer className={cn("mx-auto max-w-[1240px] pb-10", PAD)}>
-        <div className="ua-footer flex flex-wrap items-end gap-x-12 gap-y-4 pt-6 text-[14px] leading-[1.6] text-ink-3">
-          <OndelOndel />
-          <div className="flex min-w-0 max-w-[64ch] flex-1 flex-col gap-1.5">
-            <span>
-              <strong className="font-bold text-ink-2">Sumber data:</strong> DLH Provinsi DKI
-              Jakarta via Satu Data Jakarta. Nilai polutan adalah{" "}
-              <strong className="font-semibold">nilai indeks ISPU</strong>, bukan konsentrasi µg/m³.
-            </span>
-            <span>
-              <Link href="/admin" className="font-semibold text-ink-2">
-                Masuk sebagai pengelola
-              </Link>
-            </span>
-            {meta.data ? (
-              <span>
-                Stasiun pemantau:{" "}
-                {meta.data.stations
-                  .map((s) => s.name.replace(/^DKI\d+\s*-?\s*/, "").replace(/\s*\(.*\)$/, ""))
-                  .join(", ")}
-                .
-              </span>
-            ) : null}
-          </div>
+        <div className="ua-footer flex flex-wrap items-start gap-x-12 gap-y-4 pt-6 text-[14px] leading-[1.6] text-ink-3">
+          <p className="m-0 max-w-[62ch] flex-[999_1_420px]">
+            <strong className="font-bold text-ink-2">Sumber data:</strong> DLH Provinsi DKI Jakarta
+            via Satu Data Jakarta. Nilai polutan adalah{" "}
+            <strong className="font-semibold">nilai indeks ISPU</strong>, bukan konsentrasi µg/m³.
+            Rentang kategori mengikuti Permen LHK No. 14 Tahun 2020.{" "}
+            <Link href="/admin" className="font-semibold text-ink-2">
+              Masuk sebagai pengelola
+            </Link>
+          </p>
+          {meta.data ? (
+            <p className="m-0 flex-[1_1_260px]">
+              Stasiun pemantau:{" "}
+              {meta.data.stations
+                .map((s) => s.name.replace(/^DKI\d+\s*-?\s*/, "").replace(/\s*\(.*\)$/, ""))
+                .join(", ")}
+              .
+            </p>
+          ) : null}
         </div>
       </footer>
     </>

@@ -242,35 +242,59 @@ export function OverviewView() {
     ? s.models.reduce((a, b) => (b.accuracy > a.accuracy ? b : a))
     : null;
   const empty = s ? s.rows === 0 : false;
+  const dates = rows.map((r) => r.tanggal).sort();
+  const meta: [string, string][] = [
+    [
+      "Periode data uji",
+      dates.length ? `${fmt.monthYear(dates[0]!)} – ${fmt.monthYear(dates.at(-1)!)}` : "–",
+    ],
+    ["Stasiun", `${fmt.int(new Set(rows.map((r) => r.station_code)).size)} SPKU`],
+    ["Data uji", `${fmt.int(s?.rows)} hari-stasiun`],
+    ["Sumber", "Satu Data Jakarta"],
+  ];
 
   return (
     <>
-      <header className="flex flex-col gap-6 pt-4">
-        <h1 className="ua-display">Hasil pelatihan model</h1>
-        <div className="ua-skyline">
-          <Skyline />
-        </div>
-        {best && s && !empty ? (
-          <p className="ua-lead">
-            <b>{best.model}</b> menebak kategori dengan benar pada{" "}
-            <b>
-              {fmt.int(best.correct)} dari {fmt.int(s.rows)} hari uji
-            </b>{" "}
-            ({fmt.pct(best.accuracy)}).{" "}
-            {s.models
-              .filter((m) => m !== best)
-              .map((m) => `${m.model} ${fmt.int(m.correct)} hari (${fmt.pct(m.accuracy)})`)
-              .join(", ")}
-            . Ketiganya model klasifikasi dasar yang diuji pada data yang dipisahkan dari data
-            latih.
-          </p>
-        ) : (
-          <p className="ua-lead">
-            Hasil uji tiga model klasifikasi dasar (Decision Tree, Random Forest, dan kNN dengan
-            k=5) pada data uji yang dipisahkan dari data latih.
-          </p>
-        )}
-      </header>
+      <div className="flex flex-col gap-9">
+        <header className="flex flex-col gap-5 pt-4">
+          <h1 className="ua-display">Hasil pelatihan model</h1>
+          <figure className="ua-skyline m-0 pt-2">
+            <Skyline />
+          </figure>
+        </header>
+        <section aria-label="Ringkasan hasil" className="flex flex-wrap gap-x-16 gap-y-7">
+          <div className="min-w-0 flex-[999_1_560px]">
+            {best && s && !empty ? (
+              <p className="ua-lead">
+                <b>{best.model}</b> menebak kategori dengan benar pada{" "}
+                <b>
+                  {fmt.int(best.correct)} dari {fmt.int(s.rows)} hari uji
+                </b>{" "}
+                ({fmt.pct(best.accuracy)}).{" "}
+                {s.models
+                  .filter((m) => m !== best)
+                  .map((m) => `${m.model} ${fmt.int(m.correct)} hari (${fmt.pct(m.accuracy)})`)
+                  .join(", ")}
+                . Ketiganya model klasifikasi dasar yang diuji pada data yang dipisahkan dari data
+                latih.
+              </p>
+            ) : (
+              <p className="ua-lead">
+                Hasil uji tiga model klasifikasi dasar (Decision Tree, Random Forest, dan kNN dengan
+                k=5) pada data uji yang dipisahkan dari data latih.
+              </p>
+            )}
+          </div>
+          <dl className="m-0 grid flex-[1_1_260px] grid-cols-[auto_1fr] content-start gap-x-5 gap-y-2.5 text-sm">
+            {meta.map(([k, v]) => (
+              <div key={k} className="contents">
+                <dt className="font-medium text-ink-3">{k}</dt>
+                <dd className="m-0 font-bold">{v}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      </div>
       <FilterBar showDates={false} showYear>
         <Field label="Model untuk grafik dan tabel" htmlFor="f-model" className="lg:w-56">
           <Select

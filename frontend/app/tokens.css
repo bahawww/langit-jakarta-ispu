@@ -17,9 +17,11 @@
   --series-2: #b4520a;
   --warning: #a14b05;
   --danger: #a3262a;
-  --ill-line: #2b3140;
-  --ill-haze: #c3cad4;
+  --ill-line: #4a5363;
+  --ill-haze: #cdd3dc;
   --ill-flame: #c59a2c;
+  --ill-far: #e4e8ed;
+  --ill-sun: #ece3cc;
   --ispu-baik: #2e9e5b;
   --ispu-sedang: #2f6fd6;
   --ispu-tidak-sehat: #e2ac0a;
@@ -67,9 +69,11 @@
   --series-2: #ff9b54;
   --warning: #f0a35e;
   --danger: #ff9c9c;
-  --ill-line: #aeb5c4;
-  --ill-haze: #3a4252;
+  --ill-line: #8c94a5;
+  --ill-haze: #2e3544;
   --ill-flame: #e2be55;
+  --ill-far: #181d28;
+  --ill-sun: #2f2b22;
   --ispu-baik: #2e9e5b;
   --ispu-sedang: #2f6fd6;
   --ispu-tidak-sehat: #e2ac0a;
