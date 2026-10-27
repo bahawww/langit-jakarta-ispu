@@ -22,6 +22,8 @@ import { severity } from "@/lib/kategori";
 import { shortStation } from "@/lib/labels";
 import { MODELS, isModelKey, type ModelKey } from "@/lib/models";
 
+import { Timeline } from "./timeline";
+
 const PAGE_SIZE = 15;
 
 type Wrong = { row: OrangeRow; pred: string; under: boolean };
@@ -172,6 +174,23 @@ export function KesalahanView() {
           </Select>
         </Field>
       </FilterBar>
+
+      <Card aria-labelledby="h-kes-waktu">
+        <CardHeader
+          id="h-kes-waktu"
+          title="Aktual dibanding tebakan"
+          description="Tiap garis adalah satu hari uji. Warna menunjukkan kategori; baris bawah menandai hari yang meleset."
+        />
+        <CardBody>
+          <QueryView
+            query={q}
+            skeleton={<ChartSkeleton height={170} />}
+            isEmpty={(d) => d.length === 0}
+          >
+            {() => <Timeline rows={rows} pred={pred} model={MODELS[model].label} />}
+          </QueryView>
+        </CardBody>
+      </Card>
 
       <section className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,440px),1fr))] gap-x-16 gap-y-12">
         <Card aria-labelledby="h-kes-stasiun">

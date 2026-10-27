@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart, HeatmapChart, LineChart } from "echarts/charts";
+import { BarChart, HeatmapChart, LineChart, ScatterChart } from "echarts/charts";
 import {
   AriaComponent,
   CalendarComponent,
@@ -21,6 +21,7 @@ echarts.use([
   BarChart,
   HeatmapChart,
   LineChart,
+  ScatterChart,
   AriaComponent,
   CalendarComponent,
   DataZoomComponent,
