@@ -8,6 +8,7 @@ import { useState, useSyncExternalStore } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useApi, type Meta } from "@/lib/api";
+import { switchTheme } from "@/lib/theme-transition";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -36,13 +37,21 @@ function ThemeToggle() {
       size="icon"
       aria-label={dark ? "Ganti ke mode terang" : "Ganti ke mode gelap"}
       title={dark ? "Ganti ke mode terang" : "Ganti ke mode gelap"}
-      onClick={() => setTheme(dark ? "light" : "dark")}
+      onClick={(e) => {
+        const b = e.currentTarget.getBoundingClientRect();
+        switchTheme(dark ? "light" : "dark", setTheme, {
+          x: b.left + b.width / 2,
+          y: b.top + b.height / 2,
+        });
+      }}
     >
-      {dark ? (
-        <Sun aria-hidden className="size-[18px]" />
-      ) : (
-        <Moon aria-hidden className="size-[18px]" />
-      )}
+      <span key={dark ? "dark" : "light"} className="ua-theme-glyph">
+        {dark ? (
+          <Sun aria-hidden className="size-[18px]" />
+        ) : (
+          <Moon aria-hidden className="size-[18px]" />
+        )}
+      </span>
     </Button>
   );
 }

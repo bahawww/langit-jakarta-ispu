@@ -301,3 +301,122 @@
 [data-theme="dark"] {
   --on-accent: #10141c;
 }
+
+/* ---------- Ganti tema (View Transitions, lib/theme-transition.ts) ---------- */
+
+/* Blur gerak pada tepi lingkaran dan halaman lama; dimatikan di layar sentuh dan HP supaya GPU ringan. */
+:root {
+  --mb-sm: 1.5px;
+  --mb-md: 3px;
+  --mb-lg: 6px;
+}
+@media (max-width: 1023px), (pointer: coarse) {
+  :root {
+    --mb-sm: 0px;
+    --mb-md: 0px;
+    --mb-lg: 0px;
+  }
+}
+
+/* Tema baru tumbuh sebagai lingkaran dari tombol. Tepinya gelombang lembut (mask radial dengan
+   --vt-feather), tema baru "memfokus" masuk, tema lama meredup di belakangnya. --vt-reveal
+   didaftarkan lewat @property supaya radius mask bisa dianimasikan. */
+@property --vt-reveal {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+html[data-vt="theme"] {
+  --vt-feather: calc(var(--vt-r, 150vmax) * 0.18);
+  --vt-dur: 900ms;
+  --vt-ease: cubic-bezier(0.7, 0, 0.2, 1);
+}
+/* Menu atas ikut tersapu lingkaran: jangan dipotret terpisah (bundle.css memberinya nama sendiri). */
+html[data-vt="theme"] .ua-nav-bar,
+html[data-vt="theme"] .ua-nav-indicator {
+  view-transition-name: none;
+}
+html[data-vt="theme"]::view-transition-old(root),
+html[data-vt="theme"]::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+  transform-origin: var(--vt-x, 50%) var(--vt-y, 0);
+}
+html[data-vt="theme"]::view-transition-old(root) {
+  animation: ua-theme-recede var(--vt-dur) var(--vt-ease) both;
+}
+html[data-vt="theme"]::view-transition-new(root) {
+  -webkit-mask-image: radial-gradient(
+    circle at var(--vt-x, 50%) var(--vt-y, 0),
+    #000 calc(var(--vt-reveal) - var(--vt-feather)),
+    transparent var(--vt-reveal)
+  );
+  mask-image: radial-gradient(
+    circle at var(--vt-x, 50%) var(--vt-y, 0),
+    #000 calc(var(--vt-reveal) - var(--vt-feather)),
+    transparent var(--vt-reveal)
+  );
+  animation:
+    ua-theme-reveal var(--vt-dur) var(--vt-ease) both,
+    ua-theme-focus var(--vt-dur) cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes ua-theme-reveal {
+  from {
+    --vt-reveal: 0px;
+  }
+  to {
+    /* melewati sudut terjauh ditambah satu feather, supaya tidak tersisa tepi lembut */
+    --vt-reveal: calc(var(--vt-r, 150vmax) + var(--vt-feather) + 2px);
+  }
+}
+@keyframes ua-theme-focus {
+  from {
+    transform: scale(1.02);
+    filter: blur(var(--mb-lg));
+  }
+  70% {
+    filter: blur(0);
+  }
+  to {
+    transform: none;
+    filter: none;
+  }
+}
+/* Hanya blur dan redup: mengecil akan membuka garis latar kosong di tepi. */
+@keyframes ua-theme-recede {
+  to {
+    filter: blur(var(--mb-md)) brightness(0.86);
+  }
+}
+
+/* Tanpa View Transitions: semua warna memudar silang sebentar. */
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition:
+    background-color 300ms var(--ua-ease-in-out, ease),
+    border-color 300ms var(--ua-ease-in-out, ease),
+    color 300ms var(--ua-ease-in-out, ease),
+    fill 300ms var(--ua-ease-in-out, ease),
+    stroke 300ms var(--ua-ease-in-out, ease),
+    box-shadow 300ms var(--ua-ease-in-out, ease) !important;
+}
+
+/* Ikon matahari/bulan berputar masuk tiap ganti tema (elemennya dibuat ulang lewat key). */
+.ua-theme-glyph {
+  display: grid;
+  place-items: center;
+  animation: ua-glyph-spin 850ms cubic-bezier(0.34, 1.7, 0.64, 1) backwards;
+}
+@keyframes ua-glyph-spin {
+  from {
+    opacity: 0;
+    transform: rotate(-140deg) scale(0.3);
+    filter: blur(var(--mb-md));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ua-theme-glyph {
+    animation: none;
+  }
+}

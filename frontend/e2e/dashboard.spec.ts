@@ -300,3 +300,16 @@ test("penjelasan: titik balik berganti menurut polutan", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Titik balik PM10" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Istilah yang dipakai" })).toBeVisible();
 });
+
+test("tema: transisi lingkaran berjalan sampai selesai dan pilihan tersimpan", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "light", reducedMotion: "no-preference" });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Ganti ke mode gelap" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  // penanda transisi dipasang selama animasi, lalu dibersihkan
+  await expect(page.locator("html")).not.toHaveAttribute("data-vt", /.+/, { timeout: 5000 });
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.getByRole("button", { name: "Ganti ke mode terang" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+});
