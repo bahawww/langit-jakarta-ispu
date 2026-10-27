@@ -599,3 +599,133 @@ html.theme-switching *::after {
     transform: translateY(6px);
   }
 }
+
+/* ---------- Dropdown (select) bertema ---------- */
+
+/* `appearance: base-select` (Chrome dan Edge terbaru) membuat daftar pilihan bisa di-styling
+   sepenuhnya, tetap <select> asli: keyboard, pembaca layar, dan formulir tidak berubah. Browser
+   lain memakai dropdown bawaan seperti sebelumnya. */
+@supports (appearance: base-select) {
+  select,
+  select::picker(select),
+  dialog .rdp-dropdown,
+  dialog .rdp-dropdown::picker(select) {
+    appearance: base-select;
+  }
+
+  /* Tombol: label di kiri, chevron di kanan yang berputar saat daftar terbuka. */
+  select {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    text-align: left;
+    cursor: pointer;
+    transition:
+      border-color var(--ua-dur-fast) var(--ua-spring),
+      background-color var(--ua-dur-fast) var(--ua-spring);
+  }
+  select:hover {
+    border-color: var(--text-muted);
+  }
+  select:open {
+    border-color: var(--series-1);
+  }
+  select::picker-icon {
+    content: "";
+    flex: none;
+    width: 7px;
+    height: 7px;
+    margin-left: auto;
+    border-right: 2px solid var(--text-muted);
+    border-bottom: 2px solid var(--text-muted);
+    rotate: 45deg;
+    translate: 0 -2px;
+    transition:
+      rotate var(--ua-dur-base) var(--ua-spring),
+      translate var(--ua-dur-base) var(--ua-spring);
+  }
+  select:open::picker-icon {
+    rotate: 225deg;
+    translate: 0 2px;
+  }
+
+  /* Daftar pilihan: panel design system, tanpa bayangan, muncul dengan gerak pegas. */
+  select::picker(select) {
+    box-sizing: border-box;
+    min-width: anchor-size(width);
+    max-height: min(320px, 50vh);
+    margin-block: 6px;
+    padding: 6px;
+    overflow-y: auto;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-lg);
+    background: var(--panel);
+    color: var(--text);
+    box-shadow: none;
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+    transform-origin: top;
+    transition:
+      opacity var(--ua-dur-fast) var(--ua-spring),
+      transform var(--ua-dur-base) var(--ua-spring),
+      overlay var(--ua-dur-fast) allow-discrete,
+      display var(--ua-dur-fast) allow-discrete;
+  }
+  select:open::picker(select) {
+    opacity: 1;
+    transform: none;
+  }
+  @starting-style {
+    select:open::picker(select) {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.98);
+    }
+  }
+
+  select option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 40px;
+    padding: 0 12px;
+    border-radius: var(--radius-sm);
+    font: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition:
+      background-color var(--ua-dur-fast) var(--ua-spring),
+      color var(--ua-dur-fast) var(--ua-spring);
+  }
+  select option:hover,
+  select option:focus-visible,
+  select option:active {
+    outline: none;
+    background: var(--chip);
+    color: var(--text);
+  }
+  select option:checked {
+    color: var(--text);
+    font-weight: 800;
+  }
+  select option::checkmark {
+    order: 1;
+    margin-left: auto;
+    color: var(--series-1);
+    font-size: 14px;
+  }
+  select option:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    select,
+    select::picker-icon,
+    select::picker(select),
+    select option {
+      transition: none;
+    }
+  }
+}
