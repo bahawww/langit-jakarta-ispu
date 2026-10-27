@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 
 import { ImportanceBars, LineChart, modelVar, useModelColors } from "@/components/analysis-charts";
+import { Workflow } from "@/components/workflow";
 import { PageHeader } from "@/components/page-header";
 import { ChartSkeleton, QueryView } from "@/components/states";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -287,6 +288,17 @@ export function PenjelasanView() {
         description="Random Forest berisi banyak pohon keputusan, jadi tidak bisa dibaca langsung. Dua grafik ini membantu melihat apa yang sebenarnya diperhatikan model."
         meta={null}
       />
+      <section aria-labelledby="h-alur" className="flex flex-col gap-5">
+        <h2 id="h-alur" className="ua-section-title">
+          Alur kerja dari CSV sampai model
+        </h2>
+        <p className="m-0 max-w-[68ch] text-[15px] leading-[1.6] text-ink-2">
+          Tiap kali CSV baru diunggah, data dibersihkan lalu dipakai melatih tiga model dengan
+          pengaturan bawaan. Model dinilai pada 20% data yang tidak dilihat saat belajar, dan hanya
+          model yang tidak lebih buruk dari champion lama yang dipakai.
+        </p>
+        <Workflow />
+      </section>
       <QueryView
         query={q}
         skeleton={
