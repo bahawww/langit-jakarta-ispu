@@ -1,3 +1,5 @@
+import { Slide } from "@/components/ui/slide";
+
 /** Pilihan tampilan 2–4 opsi yang saling eksklusif (lebih dari 4: pakai dropdown). Gaya tab bergaris bawah. */
 export function SegmentedControl<T extends string>({
   label,
@@ -11,7 +13,7 @@ export function SegmentedControl<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="ua-tabs" role="group" aria-label={label}>
+    <Slide className="ua-tabs" role="group" aria-label={label}>
       {options.map((o) => (
         <button
           key={o.value}
@@ -22,6 +24,6 @@ export function SegmentedControl<T extends string>({
           {o.label}
         </button>
       ))}
-    </div>
+    </Slide>
   );
 }

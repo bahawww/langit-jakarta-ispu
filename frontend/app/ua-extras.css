@@ -420,3 +420,78 @@ html.theme-switching *::after {
     animation: none;
   }
 }
+
+/* ---------- Garis tab dan menu yang meluncur (components/ui/slide.tsx) ---------- */
+
+.ua-slide {
+  position: relative;
+}
+.ua-slide__bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--bar-w, 0px);
+  height: 2px;
+  border-radius: 1px;
+  background: var(--text);
+  opacity: var(--bar-o, 0);
+  transform: translate(var(--bar-x, 0px), calc(var(--bar-y, 0px) - 2px));
+  pointer-events: none;
+}
+.ua-slide.is-ready .ua-slide__bar {
+  transition:
+    transform var(--ua-dur-slow, 640ms) var(--ua-spring),
+    width var(--ua-dur-slow, 640ms) var(--ua-spring),
+    opacity var(--ua-dur-fast, 220ms) var(--ua-spring);
+}
+/* Garis lama (per tombol atau tautan) dimatikan: garis bersama yang meluncur menggantikannya. */
+.ua-slide.ua-tabs button[aria-pressed="true"] {
+  border-bottom-color: transparent;
+}
+.ua-slide.ua-nav a[aria-current="page"] {
+  box-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ua-slide.is-ready .ua-slide__bar {
+    transition: none;
+  }
+}
+
+/* ---------- Scrollbar: hanya thumb, mengikuti tema ---------- */
+
+/* Chrome, Edge, Safari: thumb bulat tipis tanpa track dan tanpa tombol panah. Batas transparan
+   membuat thumb terlihat lebih kecil dari alurnya. */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+  background: transparent;
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+::-webkit-scrollbar-thumb {
+  min-height: 44px;
+  min-width: 44px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--bar-muted);
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:active {
+  background: var(--text-muted);
+  background-clip: content-box;
+}
+/* Firefox belum mengenal ::-webkit-scrollbar. */
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--bar-muted) transparent;
+  }
+}

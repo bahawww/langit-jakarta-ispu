@@ -7,6 +7,7 @@ import { useTheme } from "next-themes";
 import { useState, useSyncExternalStore } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Slide } from "@/components/ui/slide";
 import { useApi, type Meta } from "@/lib/api";
 import { switchTheme } from "@/lib/theme-transition";
 import { cn } from "@/lib/utils";
@@ -99,9 +100,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <LogoMark />
             Langit Jakarta
           </Link>
-          <nav aria-label="Navigasi utama" className="ua-nav hidden lg:flex">
+          <Slide as="nav" aria-label="Navigasi utama" className="ua-nav hidden lg:flex">
             {links}
-          </nav>
+          </Slide>
           <ThemeToggle />
           <Button
             variant="outline"
@@ -120,13 +121,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Button>
         </div>
         {open ? (
-          <nav
+          <Slide
+            as="nav"
             id="nav-mobile"
             aria-label="Navigasi utama"
             className={cn("ua-nav mx-auto grid max-w-[1240px] gap-0 pb-3 lg:hidden", PAD)}
           >
             {links}
-          </nav>
+          </Slide>
         ) : null}
       </header>
       <main

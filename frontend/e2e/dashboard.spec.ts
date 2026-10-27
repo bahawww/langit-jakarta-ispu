@@ -326,3 +326,36 @@ test("identitas: judul tab, nama di menu, dan favicon Monas", async ({ page }) =
   await page.goto("/evaluasi");
   await expect(page).toHaveTitle("Evaluasi model · Langit Jakarta");
 });
+
+test("tab: garis bawah satu elemen yang berpindah ke tab aktif", async ({ page }) => {
+  await page.goto("/data");
+  const tabs = page.getByRole("group", { name: "Cara melihat data" });
+  const bar = tabs.locator(".ua-slide__bar");
+  const left = async () =>
+    bar.evaluate((el) => (el.parentElement as HTMLElement).style.getPropertyValue("--bar-x"));
+  const first = await tabs
+    .getByRole("button", { name: "Tren" })
+    .evaluate((el) => `${(el as HTMLElement).offsetLeft}px`);
+  await expect.poll(left).toBe(first);
+  await tabs.getByRole("button", { name: "Tabel" }).click();
+  const tabel = await tabs
+    .getByRole("button", { name: "Tabel" })
+    .evaluate((el) => `${(el as HTMLElement).offsetLeft}px`);
+  await expect.poll(left).toBe(tabel);
+  expect(tabel).not.toBe(first);
+  // menu utama juga punya garis yang sama
+  const nav = page.getByRole("navigation", { name: "Navigasi utama" }).first();
+  if (await nav.isVisible()) await expect(nav.locator(".ua-slide__bar")).toHaveCount(1);
+});
+
+test("scrollbar: thumb saja, tanpa tombol panah", async ({ page }) => {
+  await page.goto("/");
+  const css = await page.evaluate(() => {
+    const out: string[] = [];
+    for (const sheet of Array.from(document.styleSheets))
+      for (const r of Array.from((sheet as CSSStyleSheet).cssRules)) out.push(r.cssText);
+    return out.join("\n");
+  });
+  expect(css).toContain("::-webkit-scrollbar-thumb");
+  expect(css).toMatch(/::-webkit-scrollbar-button[^}]*display:\s*none/);
+});

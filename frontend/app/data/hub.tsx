@@ -1,6 +1,7 @@
 "use client";
 
 import { PageHeader } from "@/components/page-header";
+import { Slide } from "@/components/ui/slide";
 import { StasiunView } from "@/app/stasiun/view";
 import { TrenView } from "@/app/tren/view";
 import { DataView } from "@/app/data/view";
@@ -26,7 +27,7 @@ export function DataHub() {
         description="Dataset yang dipakai melatih dan menguji model: bagaimana indeks naik turun, stasiun mana yang berbeda, dan setiap barisnya."
       />
       <div className="flex flex-col gap-8">
-        <div className="ua-tabs" role="group" aria-label="Cara melihat data">
+        <Slide className="ua-tabs" role="group" aria-label="Cara melihat data">
           {TABS.map((t) => (
             <button
               key={t.id}
@@ -39,7 +40,7 @@ export function DataHub() {
               {t.label}
             </button>
           ))}
-        </div>
+        </Slide>
         <div key={tab} className="ua-swap flex flex-col gap-[72px]">
           {tab === "tren" ? <TrenView /> : tab === "stasiun" ? <StasiunView /> : <DataView />}
         </div>
