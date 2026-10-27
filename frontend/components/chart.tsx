@@ -13,7 +13,7 @@ import {
 } from "echarts/components";
 import * as echarts from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { KATEGORI, KATEGORI_META, type Kategori } from "@/lib/kategori";
 
@@ -117,6 +117,30 @@ export function useChartColors(): ChartColors {
   return useSyncExternalStore(subscribeTheme, colorsSnapshot, () => SSR_COLORS);
 }
 
+/**
+ * Antrean pembuatan grafik: satu grafik per slot waktu menganggur, supaya beberapa grafik yang masuk
+ * layar bersamaan (scroll cepat) tidak dibuat dalam satu frame panjang.
+ */
+const queue: (() => void)[] = [];
+let draining = false;
+const idle = (fn: () => void) => {
+  const w = window as Window & { requestIdleCallback?: (f: () => void, o?: object) => number };
+  return w.requestIdleCallback
+    ? w.requestIdleCallback(fn, { timeout: 600 })
+    : window.setTimeout(fn, 50);
+};
+function enqueue(job: () => void) {
+  queue.push(job);
+  if (draining) return;
+  draining = true;
+  const step = () => {
+    queue.shift()?.();
+    if (queue.length) idle(step);
+    else draining = false;
+  };
+  idle(step);
+}
+
 /** Pembungkus ECharts: resize otomatis, dispose saat unmount, dan label aksesibel. */
 export function EChart({
   option,
@@ -130,9 +154,33 @@ export function EChart({
   const ref = useRef<HTMLDivElement>(null);
   const chart = useRef<echarts.ECharts | null>(null);
   const c = useChartColors();
+  // Grafik dibuat saat kontainernya hampir terlihat, bukan saat halaman dibuka: halaman dengan
+  // banyak grafik (Ringkasan, Evaluasi) tidak membuat semua kanvas sekaligus di awal.
+  const [near, setNear] = useState(false);
 
   useEffect(() => {
-    if (!ref.current) return;
+    const el = ref.current;
+    if (!el || near) return;
+    let dead = false;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (!e?.isIntersecting) return;
+        io.disconnect();
+        enqueue(() => {
+          if (!dead) setNear(true);
+        });
+      },
+      { rootMargin: "900px" },
+    );
+    io.observe(el);
+    return () => {
+      dead = true;
+      io.disconnect();
+    };
+  }, [near]);
+
+  useEffect(() => {
+    if (!ref.current || !near) return;
     const inst = echarts.init(ref.current, undefined, { renderer: "canvas" });
     chart.current = inst;
     const ro = new ResizeObserver(() => inst.resize());
@@ -142,7 +190,7 @@ export function EChart({
       inst.dispose();
       chart.current = null;
     };
-  }, []);
+  }, [near]);
 
   useEffect(() => {
     chart.current?.setOption(
@@ -162,7 +210,7 @@ export function EChart({
       },
       true,
     );
-  }, [option, label, c]);
+  }, [option, label, c, near]);
 
   return <div ref={ref} role="img" aria-label={label} style={{ height, width: "100%" }} />;
 }

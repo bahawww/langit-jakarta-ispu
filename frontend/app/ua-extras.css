@@ -495,3 +495,107 @@ html.theme-switching *::after {
     scrollbar-color: var(--bar-muted) transparent;
   }
 }
+
+/* ---------- Skyline ringan (components/illustrations.tsx) ---------- */
+
+.ua-skyline__stage {
+  position: relative;
+  contain: layout paint;
+}
+/* Bus dan kereta: lapisan sendiri, digeser dengan transform saja (compositor). Ukuran dan posisi
+   dalam persen dari viewBox kota 1200 × 344; geser dalam persen lebar elemennya sendiri. */
+.ua-skyline__vehicle {
+  position: absolute;
+  height: auto;
+  overflow: visible;
+  will-change: transform;
+}
+.ua-bus-layer {
+  left: calc(-1 / 1200 * 100%);
+  top: calc(242 / 344 * 100%);
+  width: calc(106 / 1200 * 100%);
+  animation: ua-bus-x 55s linear infinite;
+}
+.ua-train-layer {
+  left: calc(-1 / 1200 * 100%);
+  top: calc(287 / 344 * 100%);
+  width: calc(164 / 1200 * 100%);
+  animation: ua-train-x 48s linear infinite;
+}
+@keyframes ua-bus-x {
+  from {
+    transform: translateX(-131%);
+  }
+  to {
+    transform: translateX(1190%);
+  }
+}
+@keyframes ua-train-x {
+  from {
+    transform: translateX(745%);
+  }
+  to {
+    transform: translateX(-109%);
+  }
+}
+/* Tepi kiri dan kanan memudar ke latar. */
+.ua-skyline__fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 7%;
+  pointer-events: none;
+}
+.ua-skyline__fade--l {
+  left: 0;
+  background: linear-gradient(to right, var(--bg), transparent);
+}
+.ua-skyline__fade--r {
+  right: 0;
+  background: linear-gradient(to left, var(--bg), transparent);
+}
+/* Gerak lambat per piksel: kota digambar ulang hanya sekali dalam beberapa detik. */
+.ua-skyline .ua-anim-haze {
+  animation: ua-drift 14s steps(12) infinite;
+}
+.ua-skyline .ua-anim-cloud {
+  animation: ua-float 110s steps(40) infinite;
+}
+.ua-skyline .ua-anim-cloud-slow {
+  animation: ua-float 150s steps(40) infinite reverse;
+}
+.ua-skyline .ua-anim-birds {
+  animation: ua-fly 40s steps(40) infinite alternate;
+}
+/* Jeda semua gerak saat skyline di luar layar. */
+.ua-skyline[data-paused="true"] *,
+.ua-skyline[data-paused="true"] {
+  animation-play-state: paused !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ua-bus-layer {
+    animation: none;
+    transform: translateX(560%);
+  }
+  .ua-train-layer {
+    animation: none;
+    transform: translateX(260%);
+  }
+}
+
+/* ---------- Masuk halaman tanpa blur ---------- */
+
+/* Blur pada seluruh halaman memaksa GPU merender ulang lapisan besar tiap frame (grafik, tabel).
+   Cukup memudar dan naik sedikit; ini menimpa keyframes bundle.css. */
+@keyframes ua-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+@keyframes ua-swap-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
