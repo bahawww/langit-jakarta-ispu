@@ -313,3 +313,16 @@ test("tema: transisi lingkaran berjalan sampai selesai dan pilihan tersimpan", a
   await page.getByRole("button", { name: "Ganti ke mode terang" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 });
+
+test("identitas: judul tab, nama di menu, dan favicon Monas", async ({ page }) => {
+  await page.goto("/");
+  await expect(page).toHaveTitle("Langit Jakarta");
+  await expect(page.locator("header .ua-brand")).toHaveText("Langit Jakarta");
+  const icon = await page.locator('link[rel~="icon"]').first().getAttribute("href");
+  expect(icon).toContain("icon");
+  const svg = await (await page.request.get(icon!)).text();
+  expect(svg).toContain("<svg");
+  expect(svg).toContain("flame"); // api Monas
+  await page.goto("/evaluasi");
+  await expect(page).toHaveTitle("Evaluasi model · Langit Jakarta");
+});

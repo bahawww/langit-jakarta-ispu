@@ -14,15 +14,15 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: { default: "Udara Jakarta", template: "%s · Udara Jakarta" },
+  title: { default: "Langit Jakarta", template: "%s · Langit Jakarta" },
   description:
     "Monitoring kualitas udara (ISPU) dan hasil pelatihan model klasifikasi dari 5 stasiun SPKU DKI Jakarta. Sumber data: DLH DKI Jakarta via Satu Data Jakarta.",
 };
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F6F7FB" },
-    { media: "(prefers-color-scheme: dark)", color: "#0B0D17" },
+    { media: "(prefers-color-scheme: light)", color: "#F3F5F7" },
+    { media: "(prefers-color-scheme: dark)", color: "#10141C" },
   ],
 };
 

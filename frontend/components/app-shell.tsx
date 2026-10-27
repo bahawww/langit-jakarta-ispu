@@ -97,7 +97,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="ua-nav-bar">
           <Link href="/" className="ua-brand mr-auto">
             <LogoMark />
-            Udara Jakarta
+            Langit Jakarta
           </Link>
           <nav aria-label="Navigasi utama" className="ua-nav hidden lg:flex">
             {links}

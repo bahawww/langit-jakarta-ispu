@@ -1,6 +1,6 @@
 # Platform Monitoring & Hasil Pelatihan Model Kualitas Udara ISPU DKI Jakarta
 
-Aplikasi web untuk memantau kualitas udara harian (Indeks Standar Pencemar Udara) dan menampilkan hasil pelatihan tiga model dasar
+**Langit Jakarta** — aplikasi web untuk memantau kualitas udara harian (Indeks Standar Pencemar Udara) dan menampilkan hasil pelatihan tiga model dasar
 dari 5 stasiun SPKU DKI Jakarta, Januari 2024 – November 2025. Sumber data: DLH Provinsi DKI
 Jakarta via [Satu Data Jakarta](https://satudata.jakarta.go.id/open-data/detail?kategori=dataset&page_url=data-indeks-standar-pencemar-udara-ispu-di-provinsi-dki-jakarta).
 Dibangun dari tugas kuliah "Dari Data Menjadi Solusi AI" (model awal di Orange Data Mining).
