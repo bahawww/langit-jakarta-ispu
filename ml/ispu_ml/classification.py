@@ -31,6 +31,21 @@ def candidates(seed: int) -> dict[str, BaseEstimator]:
     }
 
 
+def strata_of(df: pd.DataFrame, min_count: int = 2) -> pd.Series:
+    """Label untuk stratifikasi.
+
+    Kelas dengan anggota kurang dari `min_count` (mis. 1 hari SANGAT TIDAK SEHAT) tidak bisa
+    distratifikasi, jadi digabung ke kelas terbanyak; label aslinya tidak diubah.
+    """
+    counts = df[TARGET].value_counts()
+    return df[TARGET].where(df[TARGET].map(counts) >= min_count, counts.idxmax())
+
+
+def stratified_split(df: pd.DataFrame, seed: int) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Split stratified 80:20 seperti di Orange (untuk pelaporan/paritas)."""
+    return train_test_split(df, test_size=0.2, stratify=strata_of(df), random_state=seed)
+
+
 def _evaluate(y_true: pd.Series, y_pred: np.ndarray, y_ispu: pd.Series, labels: list[str]) -> dict:
     m = classification_metrics(y_true, y_pred, labels)
     m["vs_ispu"] = classification_metrics(y_ispu, y_pred, labels)
@@ -73,12 +88,7 @@ def train_classification(
     labels = ordered_labels(df[TARGET])
     models = candidates(seed)
 
-    # Split stratified 80:20 seperti di Orange, hanya untuk pelaporan/paritas.
-    # Kelas dengan <2 baris (mis. 1 hari SANGAT TIDAK SEHAT) tidak bisa distratifikasi;
-    # untuk stratifikasi saja kelas itu digabung ke kelas terbanyak, labelnya tidak diubah.
-    counts = df[TARGET].value_counts()
-    strata = df[TARGET].where(df[TARGET].map(counts) >= 2, counts.idxmax())
-    s_train, s_test = train_test_split(df, test_size=0.2, stratify=strata, random_state=seed)
+    s_train, s_test = stratified_split(df, seed)
 
     holdout_metrics: dict[str, dict] = {}
     stratified_metrics: dict[str, dict] = {}

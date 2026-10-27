@@ -42,6 +42,21 @@ def train(trigger: str = "manual", upload_id: int | None = None) -> dict:
     return {"run_id": run.id, "status": run.status, "message": run.message}
 
 
+@celery.task(name="ispu.analyze")
+def analyze_models() -> dict:
+    """Hitung analisis model dari data saat ini (mis. setelah update kode atau volume baru)."""
+    from ispu_ml.data import snapshot_hash
+
+    from app import analysis
+    from app.training import load_frame
+
+    with session_factory()() as s:
+        df = load_frame(s)
+    if df.empty:
+        return {"computed": False, "reason": "data kosong"}
+    return {"computed": analysis.ensure(df, snapshot_hash(df))}
+
+
 @celery.task(name="ispu.sync_satudata")
 def sync_satudata() -> dict:
     if not get_settings().satudata_sync:
@@ -74,3 +89,5 @@ def _initial_training(**_) -> None:
     if missing:
         log.info("belum ada champion, training awal dijadwalkan", extra={"tasks": missing})
         train.delay(trigger="initial")
+    else:
+        analyze_models.delay()  # no-op bila analisis sudah sesuai data dan versi kode

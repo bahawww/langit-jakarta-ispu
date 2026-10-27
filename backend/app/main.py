@@ -5,7 +5,7 @@ import uuid
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from app.api import admin_routes, ml_routes, stats_routes
+from app.api import admin_routes, analysis_routes, ml_routes, stats_routes
 from app.api.routes import router
 from app.auth import check_config
 from app.logging_setup import setup_logging
@@ -22,6 +22,7 @@ app = FastAPI(
 )
 app.include_router(router)
 app.include_router(ml_routes.router)
+app.include_router(analysis_routes.router)
 app.include_router(stats_routes.router)
 app.include_router(admin_routes.router)
 

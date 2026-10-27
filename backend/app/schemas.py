@@ -194,3 +194,24 @@ class QueuedOut(BaseModel):
     queued: bool
     task_id: str | None
     message: str
+
+
+class SimulateIn(BaseModel):
+    """Nilai indeks ISPU enam polutan pada satu hari (bukan konsentrasi)."""
+
+    pm_sepuluh: int = Field(ge=0, le=500)
+    pm_duakomalima: int = Field(ge=0, le=500)
+    sulfur_dioksida: int = Field(ge=0, le=500)
+    karbon_monoksida: int = Field(ge=0, le=500)
+    ozon: int = Field(ge=0, le=500)
+    nitrogen_dioksida: int = Field(ge=0, le=500)
+
+
+class SimulateModel(BaseModel):
+    label: str
+    probabilities: dict[str, float]
+
+
+class SimulateOut(BaseModel):
+    models: dict[str, SimulateModel]
+    ispu_category: str  # kategori resmi dari nilai tertinggi (definisi label, bukan model)

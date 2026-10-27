@@ -18,6 +18,7 @@ from ispu_ml.data import holdout_cutoff, normalize_frame, snapshot_bytes, snapsh
 from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session, sessionmaker
 
+from app import analysis
 from app.config import get_settings
 from app.ispu import POLLUTANTS
 from app.models import Measurement, ModelVersion, Station, TrainingRun
@@ -225,6 +226,11 @@ def _run_locked(
         for task in TASKS:
             details[task] = _train_task(session, run, task, df, cutoff, digest, cfg)
             log.info("training task", extra={"run_id": run.id, "task": task, **details[task]})
+        try:
+            details["analysis"] = analysis.ensure(df, digest, cfg.seed)
+        except Exception:  # analisis pelengkap: kegagalannya tidak boleh menggagalkan training
+            log.exception("analisis model gagal", extra={"run_id": run.id})
+            details["analysis"] = "failed"
         run.details = details
         decisions = {details[t]["decision"] for t in TASKS}
         run.status = "skipped" if decisions == {"skipped"} else "success"

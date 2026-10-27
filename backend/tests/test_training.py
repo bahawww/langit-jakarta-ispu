@@ -31,7 +31,8 @@ def test_champion_challenger_lifecycle(seed_dir, monkeypatch):
     assert first.status == "success", first.message
     assert first.details["classification"]["decision"] == "promoted"
     assert first.details["classification"]["reason"] == "belum ada champion"
-    assert set(first.details) == {"cutoff", "rows", "classification"}
+    assert set(first.details) == {"cutoff", "rows", "classification", "analysis"}
+    assert first.details["analysis"] in (True, False)  # True bila belum dihitung tes lain
 
     # Data dan konfigurasi sama -> dilewati, tidak ada versi baru.
     same = run_training(factory, trigger="schedule")
