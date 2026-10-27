@@ -26,6 +26,8 @@ def test_station_stats(seeded_client):
     assert s["DKI4"]["by_kategori"]["TIDAK SEHAT"] == 79  # Lubang Buaya
     assert sum(x["rows"] for x in s.values()) == 3131
     assert next(iter(s["DKI5"]["kritis"])) == "PM25"
+    # indeks tertinggi harian tidak pernah di bawah PM2.5, dan tetap dalam skala ISPU
+    assert all(x["avg_pm_duakomalima"] <= x["avg_max"] <= 300 for x in s.values())
 
 
 def test_latest_per_station(seeded_client):

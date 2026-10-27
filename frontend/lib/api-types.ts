@@ -672,6 +672,8 @@ export interface components {
       avg_pm_duakomalima: number;
       /** Avg Pm Sepuluh */
       avg_pm_sepuluh: number;
+      /** Avg Max */
+      avg_max: number;
       /** Pct Tidak Sehat */
       pct_tidak_sehat: number;
       /** By Kategori */

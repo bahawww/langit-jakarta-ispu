@@ -65,6 +65,7 @@ def stations(session: SessionDep, filters: FiltersDep) -> list[StationStats]:
         func.count(),
         func.avg(Measurement.pm_duakomalima),
         func.avg(Measurement.pm_sepuluh),
+        func.avg(Measurement.max),
         func.avg(case((Measurement.kategori.in_(_UNHEALTHY), 1.0), else_=0.0)),
     ).join(Station, Station.id == Measurement.station_id)
     rows = session.execute(
@@ -93,11 +94,12 @@ def stations(session: SessionDep, filters: FiltersDep) -> list[StationStats]:
             rows=n,
             avg_pm_duakomalima=float(p25),
             avg_pm_sepuluh=float(p10),
+            avg_max=float(mx),
             pct_tidak_sehat=float(pct),
             by_kategori=dict(sorted(kat.get(c, {}).items(), key=lambda x: severity(x[0]))),
             kritis=dict(sorted(kritis.get(c, {}).items(), key=lambda x: -x[1])),
         )
-        for c, nm, n, p25, p10, pct in rows
+        for c, nm, n, p25, p10, mx, pct in rows
     ]
 
 

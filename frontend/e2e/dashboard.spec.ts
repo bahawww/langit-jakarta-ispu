@@ -193,3 +193,30 @@ test("kesalahan: jumlah salah sama dengan API dan tabel hanya berisi tebakan sal
     expect(cell).toBe("Terlalu rendah");
   }
 });
+
+test("data: peta lima stasiun dan tabel indeks rata-rata sama dengan API", async ({
+  page,
+  request,
+}) => {
+  const stats = (await (await request.get("/api/stats/stations")).json()) as {
+    code: string;
+    name: string;
+    avg_max: number;
+  }[];
+  await page.goto("/data?tab=stasiun");
+  await expect(
+    page.getByRole("img", { name: /Peta sederhana DKI Jakarta dengan 5 stasiun/ }),
+  ).toBeVisible();
+  const table = page.getByRole("table", { name: "Indeks rata-rata per stasiun" });
+  await expect(table.locator("tbody tr")).toHaveCount(stats.length);
+  const top = stats.reduce((a, b) => (b.avg_max > a.avg_max ? b : a));
+  const f = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 });
+  await expect(table.locator("tbody tr", { hasText: "Kebon Jeruk" })).toContainText(
+    f.format(stats.find((s) => s.code === "DKI5")!.avg_max),
+  );
+  await expect(page.getByRole("img", { name: /Peta sederhana/ })).toHaveAccessibleName(
+    new RegExp(f.format(top.avg_max).replace(".", "\\.")),
+  );
+  await expect(page.getByRole("heading", { name: "Polutan penentu kategori" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Tentang data ini" })).toBeVisible();
+});

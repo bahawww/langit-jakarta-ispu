@@ -57,3 +57,12 @@ export function severity(v: string): number {
 /** Hari dengan kategori Tidak Sehat atau lebih buruk. */
 export const UNHEALTHY_FROM = KATEGORI.indexOf("TIDAK SEHAT");
 export const isUnhealthy = (v: string) => severity(v) >= UNHEALTHY_FROM;
+
+/** Kategori dari nilai indeks (Permen LHK No. 14/2020): 0–50, 51–100, 101–200, 201–300, di atas 300. */
+export function kategoriOf(index: number): Kategori {
+  if (index <= 50) return "BAIK";
+  if (index <= 100) return "SEDANG";
+  if (index <= 200) return "TIDAK SEHAT";
+  if (index <= 300) return "SANGAT TIDAK SEHAT";
+  return "BERBAHAYA";
+}

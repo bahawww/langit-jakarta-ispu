@@ -150,6 +150,7 @@ class StationStats(BaseModel):
     rows: int
     avg_pm_duakomalima: float
     avg_pm_sepuluh: float
+    avg_max: float  # rata-rata indeks tertinggi harian (penentu kategori)
     pct_tidak_sehat: float
     by_kategori: dict[str, int]
     kritis: dict[str, int]

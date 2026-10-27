@@ -4,16 +4,17 @@ import { useMemo } from "react";
 
 import { ChartLegend, EChart, useChartColors } from "@/components/chart";
 import { FilterBar } from "@/components/filter-bar";
-import { IspuLegend } from "@/components/ispu";
+import { IspuBadge, IspuLegend } from "@/components/ispu";
+import { StationMap } from "@/components/station-map";
 import { ChartSkeleton, QueryView } from "@/components/states";
 import { Callout } from "@/components/ui/callout";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { ScrollX } from "@/components/ui/scroll-x";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useApi, type StationStats } from "@/lib/api";
+import { useApi, type Meta, type StationStats, type Summary } from "@/lib/api";
 import { useFilters } from "@/lib/filters";
 import { fmt } from "@/lib/format";
-import { KATEGORI, KATEGORI_META, isUnhealthy } from "@/lib/kategori";
+import { KATEGORI, KATEGORI_META, isUnhealthy, kategoriOf } from "@/lib/kategori";
 import { kritisLabel, shortStation } from "@/lib/labels";
 
 function AvgBars({ data }: { data: StationStats[] }) {
@@ -108,13 +109,176 @@ const unhealthyOf = (s: StationStats) =>
     .filter(([k]) => isUnhealthy(k))
     .reduce((a, [, n]) => a + n, 0);
 
+const wilayahOf = (name: string) => /\(([^)]+)\)/.exec(name)?.[1] ?? "";
+
+/** Peta lima stasiun + tabel indeks rata-rata dan kategorinya. */
+function MapSection({ q }: { q: ReturnType<typeof useApi<StationStats[]>> }) {
+  return (
+    <section
+      aria-labelledby="h-peta"
+      className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,440px),1fr))] items-start gap-x-16 gap-y-10"
+    >
+      <Card aria-labelledby="h-peta">
+        <CardHeader
+          id="h-peta"
+          title="Lima stasiun pemantau"
+          description="Warna titik adalah kategori dari indeks rata-rata pada filter terpilih. Peta disederhanakan, posisi stasiun perkiraan."
+        />
+        <CardBody>
+          <QueryView
+            query={q}
+            skeleton={<ChartSkeleton height={320} />}
+            isEmpty={(d) => d.length === 0}
+          >
+            {(d) => <StationMap stations={d} />}
+          </QueryView>
+        </CardBody>
+      </Card>
+      <div className="flex flex-col gap-1 pt-1.5">
+        <QueryView
+          query={q}
+          skeleton={<Skeleton className="h-64 w-full" />}
+          isEmpty={(d) => d.length === 0}
+        >
+          {(d) => (
+            <ScrollX label="Tabel indeks rata-rata per stasiun">
+              <table className="ua-table">
+                <caption className="!pb-2.5 !text-[15px] !font-bold !text-ink">
+                  Indeks rata-rata per stasiun
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Stasiun</th>
+                    <th scope="col" className="ua-left">
+                      Wilayah
+                    </th>
+                    <th scope="col">Indeks</th>
+                    <th scope="col">Kategori</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {d.map((s) => (
+                    <tr key={s.code}>
+                      <th scope="row">{shortStation(s.name)}</th>
+                      <td className="ua-left text-ink-2">{wilayahOf(s.name)}</td>
+                      <td className="font-extrabold !text-ink">{fmt.num(s.avg_max)}</td>
+                      <td>
+                        <IspuBadge value={kategoriOf(s.avg_max)} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </ScrollX>
+          )}
+        </QueryView>
+      </div>
+    </section>
+  );
+}
+
+/** Porsi hari tiap polutan menjadi penentu kategori + keterangan dataset. */
+function CriticalSection({ q }: { q: ReturnType<typeof useApi<StationStats[]>> }) {
+  const meta = useApi<Meta>("/meta");
+  const summary = useApi<Summary>("/stats/summary");
+  const m = meta.data;
+  const about = m
+    ? [
+        {
+          k: "Periode",
+          v: `${fmt.monthYear(m.date_min)} – ${fmt.monthYear(m.date_max)}`,
+        },
+        { k: "Stasiun", v: `${m.stations.length} SPKU DKI Jakarta` },
+        { k: "Jumlah data", v: `${fmt.int(m.total_rows)} hari-stasiun` },
+        { k: "Polutan", v: m.pollutants.map((p) => p.label).join(", ") },
+        { k: "Satuan", v: "Nilai indeks ISPU, bukan µg/m³" },
+        {
+          k: "Label tidak konsisten",
+          v: summary.data ? `${fmt.int(summary.data.label_inconsistent)} baris` : "…",
+        },
+        { k: "Sumber", v: "DLH DKI Jakarta via Satu Data Jakarta" },
+      ]
+    : [];
+  return (
+    <section className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] items-start gap-x-16 gap-y-10">
+      <Card aria-labelledby="h-kritis">
+        <CardHeader
+          id="h-kritis"
+          title="Polutan penentu kategori"
+          description="Kategori harian ditentukan polutan dengan nilai tertinggi hari itu. Ini porsi hari tiap polutan menjadi penentu."
+        />
+        <CardBody>
+          <QueryView
+            query={q}
+            skeleton={<Skeleton className="h-48 w-full" />}
+            isEmpty={(d) => d.length === 0}
+          >
+            {(d) => {
+              const total: Record<string, number> = {};
+              for (const s of d)
+                for (const [k, n] of Object.entries(s.kritis)) total[k] = (total[k] ?? 0) + n;
+              const all = Object.values(total).reduce((a, b) => a + b, 0);
+              const items = Object.entries(total).sort(([, a], [, b]) => b - a);
+              return (
+                <ul className="m-0 flex list-none flex-col gap-3.5 p-0">
+                  {items.map(([k, n], i) => (
+                    <li
+                      key={k}
+                      className="grid grid-cols-[64px_minmax(0,1fr)_56px] items-center gap-3.5 text-sm"
+                    >
+                      <span className="font-bold">{kritisLabel(k)}</span>
+                      <span className="ua-bar" style={{ height: 10 }} aria-hidden>
+                        <span
+                          className="ua-anim-grow"
+                          style={{
+                            width: `${(n / all) * 100}%`,
+                            background: i === 0 ? "var(--series-1)" : "var(--bar-muted)",
+                          }}
+                        />
+                      </span>
+                      <span className="text-right font-bold">{fmt.pct(n / all)}</span>
+                    </li>
+                  ))}
+                </ul>
+              );
+            }}
+          </QueryView>
+        </CardBody>
+      </Card>
+      <section className="ua-panel flex flex-col gap-4" aria-labelledby="h-tentang">
+        <h2 id="h-tentang" className="m-0 text-xl font-extrabold tracking-[-0.01em]">
+          Tentang data ini
+        </h2>
+        {m ? (
+          <dl className="m-0 grid grid-cols-[minmax(110px,auto)_1fr] gap-x-5 gap-y-3 text-sm leading-normal">
+            {about.map((a) => (
+              <div key={a.k} className="contents">
+                <dt className="font-medium text-ink-3">{a.k}</dt>
+                <dd className="m-0 font-semibold">{a.v}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : (
+          <Skeleton className="h-40 w-full" />
+        )}
+        <p className="m-0 rounded-[10px] bg-bg px-3.5 py-3 text-[13px] leading-[1.55] text-ink-2">
+          <strong className="font-bold text-warn">Catatan:</strong> data uji dipisahkan dengan dua
+          cara. Split acak 80:20 meniru Orange, sedangkan holdout waktu menguji 20% tanggal
+          terakhir. Karena hari yang berdekatan mirip, split acak cenderung terlihat lebih mudah.
+        </p>
+      </section>
+    </section>
+  );
+}
+
 export function StasiunView() {
   const { filters } = useFilters();
   const q = useApi<StationStats[]>("/stats/stations", filters);
   return (
     <>
       <FilterBar />
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <MapSection q={q} />
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,440px),1fr))] gap-x-16 gap-y-10">
         <Card aria-labelledby="h-avg">
           <CardHeader
             id="h-avg"
@@ -240,6 +404,7 @@ export function StasiunView() {
           </QueryView>
         </CardBody>
       </Card>
+      <CriticalSection q={q} />
     </>
   );
 }
