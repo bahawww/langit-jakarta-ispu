@@ -9,6 +9,8 @@ const PAGES = [
   { path: "/data?tab=tabel", h1: "Data pengukuran" },
   { path: "/evaluasi", h1: "Evaluasi model" },
   { path: "/kesalahan", h1: "Di mana model masih keliru" },
+  { path: "/penjelasan", h1: "Kenapa mesin menebak begitu" },
+  { path: "/simulator", h1: "Coba tebak kategori udara" },
 ];
 
 for (const p of PAGES) {
@@ -145,13 +147,21 @@ test("tema gelap bisa diaktifkan", async ({ page }) => {
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 });
 
-test("menu: empat item utama, Admin di footer, tautan lama Tren/Per stasiun dialihkan", async ({
+test("menu: enam item utama, Admin di footer, tautan lama Tren/Per stasiun dialihkan", async ({
   page,
 }) => {
   await page.goto("/");
   const nav = page.getByRole("navigation", { name: "Navigasi utama" }).first();
   const items = page.viewportSize()!.width >= 1024 ? nav.getByRole("link") : null;
-  if (items) await expect(items).toHaveText(["Ringkasan", "Data", "Evaluasi", "Kesalahan"]);
+  if (items)
+    await expect(items).toHaveText([
+      "Ringkasan",
+      "Data",
+      "Evaluasi",
+      "Kesalahan",
+      "Penjelasan",
+      "Simulator",
+    ]);
   await expect(
     page.getByRole("contentinfo").getByRole("link", { name: /pengelola/ }),
   ).toHaveAttribute("href", "/admin");
@@ -219,4 +229,74 @@ test("data: peta lima stasiun dan tabel indeks rata-rata sama dengan API", async
   );
   await expect(page.getByRole("heading", { name: "Polutan penentu kategori" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Tentang data ini" })).toBeVisible();
+});
+
+const pct1 = new Intl.NumberFormat("id-ID", {
+  style: "percent",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+test("ringkasan: bagian analisis model tampil dan angkanya dari /api/analysis", async ({
+  page,
+  request,
+}) => {
+  const a = await (await request.get("/api/analysis")).json();
+  await page.goto("/");
+  for (const name of [
+    "Kategori mana yang sering tertukar",
+    "Yang paling menentukan",
+    "Kurva ROC",
+    "Menghafal atau memahami?",
+    "Cara Decision Tree memutuskan",
+  ]) {
+    await expect(page.getByRole("heading", { name })).toBeVisible();
+  }
+  const rf = a.importance.random_forest as Record<string, number>;
+  const topKey = Object.keys(rf).reduce((x, y) => (rf[y]! > rf[x]! ? y : x));
+  const row = page.locator("li", { hasText: a.features[topKey] }).filter({ hasText: "%" }).first();
+  await expect(row).toContainText(pct1.format(rf[topKey]!));
+  await expect(page.getByText(/PM2\.5 ≤ \d+\?/).first()).toBeVisible(); // akar pohon
+});
+
+test("evaluasi: pembanding dasar sama dengan /api/analysis", async ({ page, request }) => {
+  const a = await (await request.get("/api/analysis")).json();
+  await page.goto("/evaluasi");
+  await expect(page.getByRole("heading", { name: "Lebih baik dari tebakan asal?" })).toBeVisible();
+  const f3 = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+  const item = page.locator("li", { hasText: "Selalu tebak" });
+  await expect(item).toContainText(f3.format(a.baselines.majority.accuracy));
+  await expect(page.getByRole("heading", { name: "Diuji lima kali" })).toBeVisible();
+  await expect(page.getByRole("table", { name: /jumlah pohon/ })).toBeVisible();
+});
+
+test("simulator: contoh hari mengubah tebakan dan cocok dengan /api/simulate", async ({
+  page,
+  request,
+}) => {
+  const a = await (await request.get("/api/analysis")).json();
+  await page.goto("/simulator");
+  const result = page.getByRole("region", { name: "Hasil tebakan" });
+  await expect(result).toContainText("Sedang");
+  await page.getByRole("button", { name: "Hari tidak sehat" }).click();
+  await expect(result).toContainText("Tidak Sehat");
+  const api = await (
+    await request.post("/api/simulate", { data: a.presets["TIDAK SEHAT"] })
+  ).json();
+  expect(api.models.random_forest.label).toBe("TIDAK SEHAT");
+  await page.getByRole("button", { name: "Hari baik" }).click();
+  await expect(result).toContainText("Baik");
+  // slider: PM2.5 tinggi mendorong ke Tidak Sehat
+  const slider = page.getByLabel("PM2.5", { exact: true });
+  await slider.fill("150");
+  await expect(result).toContainText("Tidak Sehat");
+  await expect(result).toContainText("ambang resmi ISPU");
+});
+
+test("penjelasan: titik balik berganti menurut polutan", async ({ page }) => {
+  await page.goto("/penjelasan");
+  await expect(page.getByRole("heading", { name: "Titik balik PM2.5" })).toBeVisible();
+  await page.getByRole("button", { name: "PM10" }).click();
+  await expect(page.getByRole("heading", { name: "Titik balik PM10" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Istilah yang dipakai" })).toBeVisible();
 });

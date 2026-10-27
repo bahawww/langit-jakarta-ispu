@@ -7,6 +7,7 @@ import { ChartLegend, EChart, timeAxisLabel, useChartColors } from "@/components
 import { FilterBar } from "@/components/filter-bar";
 import { IspuBadge } from "@/components/ispu";
 import { Skyline } from "@/components/illustrations";
+import { ConfusionSection, FactorsSection, GeneralizationSection } from "@/app/overview-analysis";
 import { MetricCard, MetricGrid } from "@/components/stat-card";
 import { ChartSkeleton, ErrorState, QueryView } from "@/components/states";
 import { Button } from "@/components/ui/button";
@@ -400,6 +401,10 @@ export function OverviewView() {
           </QueryView>
         </CardBody>
       </Card>
+
+      <ConfusionSection summary={summary} model={model} />
+      <FactorsSection />
+      <GeneralizationSection />
 
       <Card aria-labelledby="h-tabel">
         <CardHeader

@@ -16,6 +16,8 @@ const NAV = [
   { href: "/data", label: "Data" },
   { href: "/evaluasi", label: "Evaluasi" },
   { href: "/kesalahan", label: "Kesalahan" },
+  { href: "/penjelasan", label: "Penjelasan" },
+  { href: "/simulator", label: "Simulator" },
 ];
 
 const PAD = "px-[clamp(16px,4vw,48px)]";

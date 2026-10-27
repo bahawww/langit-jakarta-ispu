@@ -6,6 +6,7 @@ import { ConclusionCard, type Insight } from "@/components/conclusion-card";
 import { ConfusionMatrix, classStats } from "@/components/confusion-matrix";
 import { DistributionBar, IspuScaleCard, IspuSwatch } from "@/components/ispu";
 import { PageHeader } from "@/components/page-header";
+import { TrustSections } from "@/app/evaluasi/trust";
 import { MetricCard } from "@/components/stat-card";
 import { ChartSkeleton, EmptyState, QueryView } from "@/components/states";
 import { Callout } from "@/components/ui/callout";
@@ -538,6 +539,8 @@ export function EvaluasiView() {
           <IspuScaleCard />
         </div>
       </div>
+
+      <TrustSections />
 
       <QueryView query={champions} skeleton={<ChartSkeleton height={400} />}>
         {() => (

@@ -64,8 +64,13 @@ Tipe TypeScript API dibuat dari OpenAPI: `npm run gen:api` (butuh stack berjalan
 
 ## Desain
 
-Menu utama: **Ringkasan**, **Data** (tab Tren, Per stasiun, Tabel; `/tren` dan `/stasiun` dialihkan), **Evaluasi**, **Kesalahan**.
-Admin ada di footer. Halaman Penjelasan dan Simulator dari mockup belum dibuat.
+Menu utama: **Ringkasan**, **Data** (tab Tren, Per stasiun dengan peta lima stasiun, Tabel; `/tren` dan `/stasiun`
+dialihkan), **Evaluasi**, **Kesalahan**, **Penjelasan**, **Simulator**. Admin ada di footer.
+
+Grafik analisis (pentingnya fitur, ROC, precision–recall, cross-validation, kurva belajar, grid pohon×kedalaman,
+pohon keputusan, partial dependence) dihitung `ml/ispu_ml/analysis.py` setelah training dan disimpan di
+`/artifacts/analysis/`. Model tetap bawaan sklearn; grid dan kurva kedalaman hanya analisis. Endpoint:
+`GET /api/analysis`, `POST /api/simulate`. Hitung ulang manual: `docker exec ispu-api-1 python -m app.cli analyze`.
 
 Tampilan mengikuti dua artifact milik pemilik proyek: design system **Udara Jakarta** (token warna, Plus
 Jakarta Sans, komponen `ua-*`) dan **Mockup Dashboard ML** (susunan halaman). Sumber kebenaran ada di repo:
