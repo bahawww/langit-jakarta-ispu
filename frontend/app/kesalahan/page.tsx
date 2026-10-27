@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import { TrenView } from "./view";
+import { KesalahanView } from "./view";
 
-export const metadata: Metadata = { title: "Tren" };
+export const metadata: Metadata = { title: "Kesalahan model" };
 
 export default function Page() {
   return (
     <Suspense>
-      <TrenView />
+      <KesalahanView />
     </Suspense>
   );
 }

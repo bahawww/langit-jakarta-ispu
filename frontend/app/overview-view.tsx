@@ -20,15 +20,7 @@ import { useFilters } from "@/lib/filters";
 import { fmt } from "@/lib/format";
 import { AMBANG, KATEGORI, KATEGORI_META, isUnhealthy } from "@/lib/kategori";
 import { shortStation } from "@/lib/labels";
-
-/** Tiga model dasar (bawaan sklearn/Orange, tanpa tuning). Kunci = parameter URL `model`. */
-const MODELS = {
-  rf: { label: "Random Forest", pred: (r: OrangeRow) => r.pred_random_forest },
-  dt: { label: "Decision Tree", pred: (r: OrangeRow) => r.pred_decision_tree },
-  knn: { label: "kNN (k=5)", pred: (r: OrangeRow) => r.pred_knn },
-} as const;
-type ModelKey = keyof typeof MODELS;
-const isModelKey = (v: string | null): v is ModelKey => v != null && v in MODELS;
+import { MODELS, isModelKey, type ModelKey } from "@/lib/models";
 
 const PAGE_SIZE = 20;
 const avg2 = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 });

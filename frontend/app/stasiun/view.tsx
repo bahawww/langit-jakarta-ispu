@@ -5,7 +5,6 @@ import { useMemo } from "react";
 import { ChartLegend, EChart, useChartColors } from "@/components/chart";
 import { FilterBar } from "@/components/filter-bar";
 import { IspuLegend } from "@/components/ispu";
-import { PageHeader } from "@/components/page-header";
 import { ChartSkeleton, QueryView } from "@/components/states";
 import { Callout } from "@/components/ui/callout";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -114,10 +113,6 @@ export function StasiunView() {
   const q = useApi<StationStats[]>("/stats/stations", filters);
   return (
     <>
-      <PageHeader
-        title="Perbandingan antar-stasiun"
-        description="Rata-rata indeks, komposisi kategori, dan pencemar yang paling sering jadi penyebab utama di tiap stasiun."
-      />
       <FilterBar />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card aria-labelledby="h-avg">

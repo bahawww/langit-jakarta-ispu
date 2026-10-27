@@ -5,7 +5,6 @@ import { useMemo } from "react";
 import { BULAN, ChartLegend, EChart, timeAxisLabel, useChartColors } from "@/components/chart";
 import { FilterBar } from "@/components/filter-bar";
 import { IspuLegend } from "@/components/ispu";
-import { PageHeader } from "@/components/page-header";
 import { ChartSkeleton, QueryView } from "@/components/states";
 import { Callout } from "@/components/ui/callout";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -213,10 +212,6 @@ export function TrenView() {
 
   return (
     <>
-      <PageHeader
-        title="Tren kualitas udara"
-        description="Pola harian, kalender kategori, dan komposisi bulanan dari stasiun terpilih."
-      />
       <FilterBar>
         <Field label="Polutan" htmlFor="f-pollutant" className="lg:w-56">
           <Select

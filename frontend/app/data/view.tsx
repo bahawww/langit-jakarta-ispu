@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 
 import { FilterBar } from "@/components/filter-bar";
 import { IspuBadge } from "@/components/ispu";
-import { PageHeader } from "@/components/page-header";
 import { QueryView } from "@/components/states";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
@@ -69,10 +68,6 @@ export function DataView() {
 
   return (
     <>
-      <PageHeader
-        title="Data pengukuran"
-        description="Semua baris di database. Baris berlabel tidak konsisten diberi tanda, tidak dihapus."
-      />
       <FilterBar>
         <Field label="Kategori" htmlFor="f-kat" className="lg:w-48">
           <Select

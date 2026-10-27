@@ -2,7 +2,15 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 for (const scheme of ["light", "dark"] as const) {
-  for (const path of ["/", "/tren", "/stasiun", "/evaluasi", "/data", "/admin/login"]) {
+  for (const path of [
+    "/",
+    "/data",
+    "/data?tab=stasiun",
+    "/data?tab=tabel",
+    "/evaluasi",
+    "/kesalahan",
+    "/admin/login",
+  ]) {
     test(`WCAG AA ${scheme} ${path}`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: scheme });
       await page.goto(path);
@@ -30,7 +38,7 @@ for (const scheme of ["light", "dark"] as const) {
 for (const scheme of ["light", "dark"] as const) {
   test(`WCAG AA ${scheme} kalender tanggal terbuka`, async ({ page }) => {
     await page.emulateMedia({ colorScheme: scheme });
-    await page.goto("/tren");
+    await page.goto("/data");
     await page.locator("#f-date").click();
     await page.getByRole("dialog", { name: "Pilih rentang tanggal" }).waitFor();
     const result = await new AxeBuilder({ page })

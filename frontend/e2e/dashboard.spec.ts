@@ -4,10 +4,11 @@ import { horizontalOverflow } from "./helpers";
 
 const PAGES = [
   { path: "/", h1: "Hasil pelatihan model" },
-  { path: "/tren", h1: "Tren kualitas udara" },
-  { path: "/stasiun", h1: "Perbandingan antar-stasiun" },
-  { path: "/evaluasi", h1: "Evaluasi model" },
   { path: "/data", h1: "Data pengukuran" },
+  { path: "/data?tab=stasiun", h1: "Data pengukuran" },
+  { path: "/data?tab=tabel", h1: "Data pengukuran" },
+  { path: "/evaluasi", h1: "Evaluasi model" },
+  { path: "/kesalahan", h1: "Di mana model masih keliru" },
 ];
 
 for (const p of PAGES) {
@@ -81,7 +82,7 @@ test("hasil model: tabel aktual vs prediksi, status, dan model yang dipilih", as
 
 test("tanggal: preset, kalender, batas data, Esc, dan reset", async ({ page, request }) => {
   const meta = await (await request.get("/api/meta")).json();
-  await page.goto("/tren");
+  await page.goto("/data");
   const trigger = page.locator("#f-date");
   const dialog = page.getByRole("dialog", { name: "Pilih rentang tanggal" });
   await expect(trigger).toContainText("Semua tanggal");
@@ -125,7 +126,7 @@ test("tanggal: preset, kalender, batas data, Esc, dan reset", async ({ page, req
 });
 
 test("data: cari, badge label tidak konsisten, dan ekspor CSV", async ({ page }) => {
-  await page.goto("/data");
+  await page.goto("/data?tab=tabel");
   const only = page.getByLabel("Hanya label tidak konsisten");
   await only.click(); // checkbox terkontrol oleh URL: tunggu state, jangan pakai check() yang langsung memeriksa
   await expect(only).toBeChecked();
@@ -142,4 +143,53 @@ test("tema gelap bisa diaktifkan", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Ganti ke mode gelap" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+});
+
+test("menu: empat item utama, Admin di footer, tautan lama Tren/Per stasiun dialihkan", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const nav = page.getByRole("navigation", { name: "Navigasi utama" }).first();
+  const items = page.viewportSize()!.width >= 1024 ? nav.getByRole("link") : null;
+  if (items) await expect(items).toHaveText(["Ringkasan", "Data", "Evaluasi", "Kesalahan"]);
+  await expect(
+    page.getByRole("contentinfo").getByRole("link", { name: /pengelola/ }),
+  ).toHaveAttribute("href", "/admin");
+  await page.goto("/tren");
+  await expect(page).toHaveURL(/\/data$/);
+  await page.goto("/stasiun");
+  await expect(page).toHaveURL(/\/data\?tab=stasiun$/);
+  await expect(page.getByRole("button", { name: "Per stasiun", pressed: true })).toBeVisible();
+});
+
+test("data: tab Tren, Per stasiun, dan Tabel bisa dipilih dan dibagikan lewat URL", async ({
+  page,
+}) => {
+  await page.goto("/data");
+  await expect(page.getByRole("button", { name: "Tren", pressed: true })).toBeVisible();
+  await page.getByRole("button", { name: "Tabel" }).click();
+  await expect(page).toHaveURL(/tab=tabel/);
+  await expect(page.getByRole("link", { name: "Ekspor CSV" })).toBeVisible();
+});
+
+test("kesalahan: jumlah salah sama dengan API dan tabel hanya berisi tebakan salah", async ({
+  page,
+  request,
+}) => {
+  const rows = (await (await request.get("/api/baseline/orange/rows")).json()) as {
+    kategori: string;
+    pred_random_forest: string;
+  }[];
+  const wrong = rows.filter((r) => r.kategori !== r.pred_random_forest).length;
+  await page.goto("/kesalahan");
+  await expect(
+    page.getByRole("heading", { level: 1 }).locator("xpath=following-sibling::p"),
+  ).toContainText(
+    `salah menebak ${wrong.toLocaleString("id-ID")} dari ${rows.length.toLocaleString("id-ID")}`,
+  );
+  await expect(page.getByText(new RegExp(`${wrong.toLocaleString("id-ID")} baris$`))).toBeVisible();
+  await page.getByRole("button", { name: "Terlalu rendah" }).click();
+  for (const cell of await page.locator("tbody tr td:nth-child(6)").allTextContents()) {
+    expect(cell).toBe("Terlalu rendah");
+  }
 });

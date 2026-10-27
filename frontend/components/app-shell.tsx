@@ -12,12 +12,10 @@ import { useApi, type Meta } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/", label: "Hasil model" },
-  { href: "/tren", label: "Tren" },
-  { href: "/stasiun", label: "Per stasiun" },
-  { href: "/evaluasi", label: "Evaluasi" },
+  { href: "/", label: "Ringkasan" },
   { href: "/data", label: "Data" },
-  { href: "/admin", label: "Admin" },
+  { href: "/evaluasi", label: "Evaluasi" },
+  { href: "/kesalahan", label: "Kesalahan" },
 ];
 
 const PAD = "px-[clamp(16px,4vw,48px)]";
@@ -135,6 +133,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <strong className="font-bold text-ink-2">Sumber data:</strong> DLH Provinsi DKI
               Jakarta via Satu Data Jakarta. Nilai polutan adalah{" "}
               <strong className="font-semibold">nilai indeks ISPU</strong>, bukan konsentrasi µg/m³.
+            </span>
+            <span>
+              <Link href="/admin" className="font-semibold text-ink-2">
+                Masuk sebagai pengelola
+              </Link>
             </span>
             {meta.data ? (
               <span>

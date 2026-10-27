@@ -64,6 +64,9 @@ Tipe TypeScript API dibuat dari OpenAPI: `npm run gen:api` (butuh stack berjalan
 
 ## Desain
 
+Menu utama: **Ringkasan**, **Data** (tab Tren, Per stasiun, Tabel; `/tren` dan `/stasiun` dialihkan), **Evaluasi**, **Kesalahan**.
+Admin ada di footer. Halaman Penjelasan dan Simulator dari mockup belum dibuat.
+
 Tampilan mengikuti dua artifact milik pemilik proyek: design system **Udara Jakarta** (token warna, Plus
 Jakarta Sans, komponen `ua-*`) dan **Mockup Dashboard ML** (susunan halaman). Sumber kebenaran ada di repo:
 
@@ -71,7 +74,7 @@ Jakarta Sans, komponen `ua-*`) dan **Mockup Dashboard ML** (susunan halaman). Su
 - `npm run gen:tokens` membuat `app/tokens.css` (variabel CSS terang/gelap, kelas teks `ua-t-*`) dan
   `app/ua.css` (komponen). Keduanya jangan diedit langsung; tambahan di luar bundle ada di `app/ua-extras.css`.
 - Tema memakai `data-theme="light|dark"` di `<html>`. Grafik (ECharts) membaca token yang sama, jadi ikut berganti tema.
-- Warna kategori ISPU hanya dari token `--ispu-*`; warna model (`--accent`, `--series-2`) tidak dipakai untuk kategori.
+- Warna kategori ISPU hanya dari token `--ispu-*`; warna model (`--series-1`, `--series-2`) tidak dipakai untuk kategori.
 - Aturan sistem yang ikut diterapkan: kalimat "artinya apa" di tiap kartu, maksimal 2 seri per grafik model,
   maksimal 4 kartu metrik per baris, lebih dari 4 pilihan = dropdown, target sentuh 44 px, kontras AA (diuji axe).
 
