@@ -128,3 +128,71 @@ export function Timeline({
 }
 
 const label = (k: string) => (isKategori(k) ? KATEGORI_META[k].label : k);
+
+/** Jumlah hari uji per kategori tiap bulan: batang kiri aktual, batang kanan tebakan model. */
+export function MonthlyCompare({
+  rows,
+  pred,
+  model,
+}: {
+  rows: OrangeRow[];
+  pred: (r: OrangeRow) => string;
+  model: string;
+}) {
+  const c = useChartColors();
+  const { months, kats } = useMemo(() => {
+    const m = [...new Set(rows.map((r) => r.tanggal.slice(0, 7)))].sort();
+    const k = Object.keys(KATEGORI_META).filter((x) =>
+      rows.some((r) => r.kategori === x || pred(r) === x),
+    );
+    return { months: m, kats: k };
+  }, [rows, pred]);
+
+  const option = useMemo(() => {
+    const count = (get: (r: OrangeRow) => string, kat: string) =>
+      months.map((m) => rows.filter((r) => r.tanggal.startsWith(m) && get(r) === kat).length);
+    const series = (name: string, stack: string, get: (r: OrangeRow) => string, alpha: number) =>
+      kats.map((k) => ({
+        type: "bar",
+        name: `${name} ${label(k)}`,
+        stack,
+        barMaxWidth: 14,
+        data: count(get, k),
+        itemStyle: { color: c.ispu[k as keyof typeof c.ispu], opacity: alpha },
+      }));
+    return {
+      grid: { left: 40, right: 8, top: 12, bottom: 44 },
+      tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+      xAxis: {
+        type: "category",
+        data: months.map((m) => fmt.monthYear(`${m}-01`)),
+        axisLabel: { color: c.muted, fontSize: 11, hideOverlap: true },
+        axisLine: { lineStyle: { color: c.axis } },
+        axisTick: { show: false },
+      },
+      yAxis: {
+        type: "value",
+        axisLabel: { color: c.muted, fontSize: 11 },
+        splitLine: { lineStyle: { color: c.grid } },
+      },
+      series: [
+        ...series("Aktual", "aktual", (r) => r.kategori, 1),
+        ...series("Tebakan", "tebakan", pred, 0.55),
+      ],
+    };
+  }, [months, kats, rows, pred, c]);
+
+  return (
+    <>
+      <EChart
+        option={option}
+        height={260}
+        label={`Jumlah hari uji per kategori tiap bulan, aktual dibanding tebakan ${model}.`}
+      />
+      <p className="m-0 text-sm text-ink-3">
+        Tiap bulan ada dua batang: yang pekat aktual, yang pudar tebakan {model}. Tinggi tiap warna
+        adalah jumlah hari uji di kategori itu. Makin sama keduanya, makin tepat modelnya.
+      </p>
+    </>
+  );
+}

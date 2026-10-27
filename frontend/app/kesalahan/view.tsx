@@ -22,7 +22,7 @@ import { severity } from "@/lib/kategori";
 import { shortStation } from "@/lib/labels";
 import { MODELS, isModelKey, type ModelKey } from "@/lib/models";
 
-import { Timeline } from "./timeline";
+import { MonthlyCompare, Timeline } from "./timeline";
 
 const PAGE_SIZE = 15;
 
@@ -188,6 +188,23 @@ export function KesalahanView() {
             isEmpty={(d) => d.length === 0}
           >
             {() => <Timeline rows={rows} pred={pred} model={MODELS[model].label} />}
+          </QueryView>
+        </CardBody>
+      </Card>
+
+      <Card aria-labelledby="h-kes-jumlah">
+        <CardHeader
+          id="h-kes-jumlah"
+          title="Jumlah hari per kategori"
+          description="Berapa hari tiap kategori terjadi sebenarnya dibanding yang ditebak model, per bulan."
+        />
+        <CardBody>
+          <QueryView
+            query={q}
+            skeleton={<ChartSkeleton height={260} />}
+            isEmpty={(d) => d.length === 0}
+          >
+            {() => <MonthlyCompare rows={rows} pred={pred} model={MODELS[model].label} />}
           </QueryView>
         </CardBody>
       </Card>
